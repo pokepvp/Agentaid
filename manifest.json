@@ -1,0 +1,1 @@
+{"background_color":"#e9f2df","description":"Mine $AID with your Agent ID on BNB Chain.","display":"standalone","icons":[{"purpose":"any","sizes":"any","src":"icon.svg","type":"image/svg+xml"}],"name":"Agent ID Miner","orientation":"portrait","scope":"./","short_name":"$AID Miner","start_url":"./","theme_color":"#f0b90b"}
