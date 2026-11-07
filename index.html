@@ -102,7 +102,7 @@
       .hero p.lede { font-size: 18px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 26px; max-width: 46ch; }
       .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
       .btn {
-        appearance: none; border: 0; cursor: pointer;
+        appearance: none; border: 0; cursor: pointer; touch-action: manipulation;
         font-family: inherit; font-weight: 800; font-size: 15px;
         padding: 13px 22px; border-radius: 10px; min-height: 44px;
         display: inline-flex; align-items: center; justify-content: center;
@@ -116,7 +116,7 @@
       .btn:focus-visible, .nav-inner a:focus-visible, .reset-link:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
       .btn-note { font-size: 13.5px; line-height: 1.6; color: var(--term); background: var(--console-2); border: 1px solid rgba(240,185,11,0.45); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
       .btn-note[hidden] { display: none; }
-      .btn-sm { padding: 9px 14px; font-size: 13.5px; border-radius: 8px; }
+      .btn-sm { padding: 10px 16px; font-size: 14px; border-radius: 8px; min-height: 44px; }
       .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
       .chip {
         font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 600;
@@ -297,7 +297,8 @@
       .nav-inner { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; }
       .nav-inner a {
         color: var(--ink-soft); text-decoration: none; font-weight: 700; font-size: 14px;
-        padding: 10px 12px; border-radius: 8px; min-height: 40px; display: inline-flex; align-items: center;
+        padding: 10px 12px; border-radius: 8px; min-height: 44px; display: inline-flex; align-items: center;
+        touch-action: manipulation;
       }
       .nav-inner a:hover { color: var(--ink); background: var(--bg-soft); }
       .nav-inner a.nav-cta { background: var(--gold); color: #191304; margin-left: auto; }
@@ -404,10 +405,11 @@
       .calc-input-wrap .unit { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 800; color: var(--gold); }
       .calc-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
       .calc-preset {
-        appearance: none; cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700;
-        padding: 8px 11px; min-height: 36px; border-radius: 999px;
+        appearance: none; cursor: pointer; touch-action: manipulation; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+        padding: 10px 14px; min-height: 44px; border-radius: 999px;
         background: transparent; color: var(--term); border: 1.5px solid var(--console-line);
       }
+      .calc-preset:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       .calc-preset:hover { border-color: var(--gold); color: var(--gold); }
       .calc-preset.on { background: var(--gold); border-color: var(--gold); color: #191304; }
       .calc-out { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--console-line); }
@@ -609,7 +611,7 @@
     </svg>
 
     <div class="sim-banner" role="note">
-      <span><b>SIMULATION</b>$AID is a simulated token. No real crypto, no real value, nothing is on-chain.</span>
+      <span><b>SIMULATION</b>$AID is a simulated token — no real value, nothing on-chain.</span>
     </div>
 
     <header class="topnav">
@@ -634,10 +636,9 @@
           </div>
           <h1>Your Agent ID mines <span class="tk">$AID</span> for you.</h1>
           <p class="lede">
-            Connect a simulated Agent ID, start a machine, and earn $AID around the clock.
-            Two machine slots, a hard cap of 21 million, and every session is your choice:
-            <b>Free — 3 hours at ×1 speed</b>, or <b>Paid — 12 hours at ×3 speed for 0.003 BNB (simulated)</b>.
-            Plus a 10% referral bonus minted on top.
+            Connect, start a machine, earn $AID. Pick per session:
+            <b>Free — 3h at ×1</b>, or <b>Paid — 12h at ×3 for 0.003 BNB</b> (simulated).
+            Referral bonus +10%.
           </p>
           <div class="cta-row">
             <button class="btn btn-gold" id="heroStart">Start Mining</button>
@@ -646,9 +647,7 @@
           <div class="chips">
             <span class="chip">Supply <b>21,000,000 $AID</b></span>
             <span class="chip"><b>4</b> epochs · <b>3</b> halvings</span>
-            <span class="chip">Sessions <b>Free 3h / Paid 12h</b> · pick per start</span>
-            <span class="chip">Free session <b>3h · ×1 · 0 BNB</b></span>
-            <span class="chip">Paid session <b>12h · ×3 · 0.003 BNB</b> (sim)</span>
+            <span class="chip">Sessions <b>Free 3h / Paid 12h</b></span>
             <span class="chip">Referral <b>+10%</b></span>
           </div>
         </div>
@@ -726,7 +725,7 @@
       <section id="console">
         <div class="sec-head">
           <h2>Mining console</h2>
-          <p>Sessions run in real time. Every start is a choice: Free (3 hours, ×1 speed, 0 BNB) or Paid (12 hours, ×3 speed, 0.003 BNB simulated) — paid is charged instantly when the session starts. You can still choose Paid on your very first session to go faster instead of taking the Free one.</p>
+          <p>Pick per start: Free 3h ×1 (0 BNB) or Paid 12h ×3 (0.003 BNB, sim).</p>
         </div>
         <div class="console">
           <div class="console-top">
@@ -736,7 +735,7 @@
                 <span class="agent-badge" id="agentBadge">not connected</span>
                 <button class="btn btn-term btn-sm" id="connectBtn">Connect</button>
               </div>
-              <div class="sub">Simulated identity — no wallet, no keys, nothing leaves this page.</div>
+              <div class="sub">Simulation only — no wallet needed.</div>
             </div>
             <div class="stat">
               <div class="k">BALANCE</div>
@@ -746,7 +745,7 @@
             <div class="stat">
               <div class="k">BNB WALLET (SIM)</div>
               <div class="v"><span id="bnbBalance">0.01000</span> <small>BNB</small></div>
-              <div class="sub" id="bnbSub">Free ×1: 0 BNB · Paid ×3: 0.003 BNB/session (sim) · Upgrade: +0.003 BNB</div>
+              <div class="sub" id="bnbSub">Paid: 0.003 BNB · Upgrade: +0.003 BNB · Free: 0 BNB</div>
               <div class="agent-line">
                 <button class="btn btn-line btn-sm" id="topupBtn">Top Up</button>
               </div>
@@ -790,22 +789,22 @@
       <section id="referral">
         <div class="sec-head">
           <h2>Referral: +10%, minted on top</h2>
-          <p>10% of invitee mining, minted on top — plus 10% of the Paid session fees they pay (Free sessions have no fee).</p>
+          <p>+10% of what your invitees mine, plus 10% of their Paid session fees.</p>
         </div>
         <div class="ref-grid">
           <div class="panel">
             <h3>Your referral code</h3>
-            <p>Share your code anywhere. When an invitee mines $AID with it, you earn 10% of their mined amount as a bonus, plus 10% of the session fees they pay (in simulated BNB), and they keep 100% of theirs. Their link looks like this: <span class="mono" id="refLinkText">agent-id-miner/r/…</span></p>
+            <p>Share your code anywhere. You earn 10% of what invitees mine, plus 10% of their session fees — they keep 100% of theirs. Link: <span class="mono" id="refLinkText">agent-id-miner/r/…</span></p>
             <div class="ref-link-row">
               <input class="ref-input" id="refLink" readonly value="" aria-label="Your referral code" />
               <button class="btn btn-gold btn-sm" id="copyRefBtn">Copy Code</button>
             </div>
-            <p style="margin-top:14px;">Demo the mechanic inside this simulation:</p>
+            <p style="margin-top:14px;">Try it:</p>
             <button class="btn btn-ghost btn-sm" id="simInviteeBtn">Test Referral</button>
           </div>
           <div class="panel">
             <div class="pct">10%</div>
-            <p>of everything your invitees mine — paid to you, minted fresh — plus 10% of their session fees in simulated BNB.</p>
+            <p>of what your invitees mine, paid to you — plus 10% of their session fees (sim BNB).</p>
             <div class="ref-stats">
               <div><div class="v" id="refEvents">0</div><div class="k">Invitee claims (sim)</div></div>
               <div><div class="v" id="refMined">0</div><div class="k">$AID mined by invitees</div></div>
@@ -820,23 +819,23 @@
       <section>
         <div class="sec-head">
           <h2>How it works</h2>
-          <p>Three steps. No real wallet, no real gas — fees are simulated BNB.</p>
+          <p>Three steps. All fees are simulated BNB.</p>
         </div>
         <div class="steps">
           <div class="step">
             <div class="num">STEP 1</div>
             <h3>Connect Agent ID</h3>
-            <p>One tap creates your simulated Agent ID. It is the only identity the miner needs.</p>
+            <p>One tap in the console creates your simulated Agent ID.</p>
           </div>
           <div class="step">
             <div class="num">STEP 2</div>
             <h3>Pick Free or Paid</h3>
-            <p>Each start, you pick the session: <b>Free</b> runs 3 hours at ×1 speed for 0 BNB, or <b>Paid</b> runs 12 hours at ×3 speed for <b>0.003 BNB</b> (simulated) paid up front. Paid stacks with tier upgrades. Upgrades cost mined $AID plus 0.003 BNB each — Turbo 500 $AID + 0.003 BNB, Quantum 2,000 $AID + 0.003 BNB.</p>
+            <p><b>Free:</b> 3h at ×1, 0 BNB. <b>Paid:</b> 12h at ×3, 0.003 BNB up front. Upgrades cost $AID + 0.003 BNB.</p>
           </div>
           <div class="step">
             <div class="num">STEP 3</div>
             <h3>Claim &amp; invite</h3>
-            <p>Claim your $AID whenever you like. Invite friends and earn 10% of what they mine — minted on top, never deducted.</p>
+            <p>Claim anytime. Invite friends and earn +10% of what they mine.</p>
           </div>
         </div>
       </section>
@@ -845,13 +844,13 @@
       <section id="token">
         <div class="sec-head">
           <h2>Token — $AID</h2>
-          <p>The facts of the real contract design. The contract is written and tested, but not deployed yet — the address is TBD.</p>
+          <p>The real contract is written and tested — not deployed yet. Address: TBD.</p>
         </div>
         <div class="token-head">
           <svg role="img" aria-label="$AID token emblem — a gold Agent ID badge with a gold robot face and the letters AID"><use href="#aid-emblem"></use></svg>
           <div>
             <div class="th-sym">$AID</div>
-            <div class="th-name">Agent ID — the token every Agent miner earns. Its emblem is the badge itself: an agent identity you can hold.</div>
+            <div class="th-name">Agent ID — the token Agent miners earn.</div>
           </div>
         </div>
         <div class="facts">
@@ -859,11 +858,11 @@
           <div class="fact"><div class="fk">SYMBOL</div><div class="fv"><span class="mono">$AID</span></div></div>
           <div class="fact"><div class="fk">CHAIN</div><div class="fv">BNB Chain <small>· chain ID</small> <span class="mono">56</span></div></div>
           <div class="fact"><div class="fk">DECIMALS</div><div class="fv"><span class="mono">18</span></div></div>
-          <div class="fact"><div class="fk">MAX SUPPLY</div><div class="fv"><span class="mono">21,000,000 $AID</span> <small>— hard cap. Split:</small> <span class="mono">2,100,000 $AID (10%)</span> <small>presale allocation,</small> <span class="mono">18,900,000 $AID (90%)</span> <small>minted through mining</small></div></div>
-          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000 $AID</span> presale + <span class="mono">3,150,000 $AID</span> mining. Epochs 2–4: <span class="mono">5,250,000 $AID</span> mining each. Total mining emission: <span class="mono">18,900,000 $AID</span>. Reward rate per epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span> (3 halvings). A Free Miner earns <span class="mono">100 $AID/day</span> in Epoch 1.</div></div>
-          <div class="fact"><div class="fk">SESSION TYPES &amp; FEE</div><div class="fv"><b>Free session:</b> <span class="mono">3 hours</span> <small>at</small> <span class="mono">×1</span> <small>speed,</small> <span class="mono">0 BNB</span> <small>— 100 $AID/day rate in Epoch 1, accruing only during those 3 hours (≈12.5 $AID per full Free session at base tier).</small> <b>Paid session:</b> <span class="mono">12 hours</span> <small>at</small> <span class="mono">×3</span> <small>speed — 300 $AID/day rate in Epoch 1, ≈150 $AID per full Paid session at base tier — for</small> <span class="mono">0.003 BNB</span> <small>paid up front. It stacks with tier upgrades (Turbo ×2 + Paid ×3 = ×6; Quantum ×4 + Paid ×3 = ×12).</small> Paid fee split: <span class="mono">90% (0.0027 BNB)</span> to the treasury, <span class="mono">10% (0.0003 BNB)</span> to the referrer. <small>Free sessions charge no fee.</small></div></div>
-          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID + 0.003 BNB</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID + 0.003 BNB</span>. <small>Each upgrade charges both costs: the $AID is burned, and 0.003 BNB (simulated here) is deducted from your BNB wallet at upgrade time.</small></div></div>
-          <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>On the real contract, a wallet must hold a</small> Binance Agent ID <small>to start a session.</small></div></div>
+          <div class="fact"><div class="fk">MAX SUPPLY</div><div class="fv"><span class="mono">21,000,000 $AID</span> <small>— hard cap.</small> <span class="mono">2,100,000 (10%)</span> <small>presale ·</small> <span class="mono">18,900,000 (90%)</span> <small>mining</small></div></div>
+          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000</span> presale + <span class="mono">3,150,000</span> mining. Epochs 2–4: <span class="mono">5,250,000</span> mining each. Rate halves each epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span>. Free Miner: <span class="mono">100 $AID/day</span> in Epoch 1.</div></div>
+          <div class="fact"><div class="fk">SESSION TYPES &amp; FEE</div><div class="fv"><b>Free:</b> <span class="mono">3h · ×1 · 0 BNB</span> <small>(≈12.5 $AID/session).</small> <b>Paid:</b> <span class="mono">12h · ×3 · 0.003 BNB</span> <small>up front (≈150 $AID/session). Stacks with upgrades (Turbo ×2 + Paid ×3 = ×6).</small> Fee split: <span class="mono">90%</span> treasury, <span class="mono">10%</span> referrer.</div></div>
+          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID + 0.003 BNB</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID + 0.003 BNB</span>. <small>The $AID is burned.</small></div></div>
+          <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>You must hold a</small> Binance Agent ID <small>to mine (real contract).</small></div></div>
           <div class="fact"><div class="fk">CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
         </div>
       </section>
@@ -872,17 +871,17 @@
       <section id="presale">
         <div class="sec-head">
           <h2>Presale — $AID</h2>
-          <p>Coming soon. The presale contract is not deployed yet — no sale is open and no BNB should be sent anywhere.</p>
+          <p>Coming soon — not open yet. Do not send BNB anywhere.</p>
         </div>
         <div class="presale-grid">
           <div class="presale-card">
             <span class="presale-status">● COMING SOON — NOT STARTED</span>
             <div class="presale-price">1 BNB = 210,000 <small>$AID</small></div>
-            <p>Fixed presale price. Buyers will send BNB to the presale contract address and receive $AID instantly in the same purchase — no waiting for a later distribution.</p>
+            <p>Fixed price. Send BNB to the presale contract, get $AID instantly in the same purchase.</p>
             <div class="presale-get">
               <div class="k">SMALLEST BUY — WHAT YOU GET</div>
               <div class="big"><span class="from">0.01 BNB</span><span class="arrow" aria-hidden="true">→</span><span class="to">2,100 <small>$AID</small></span></div>
-              <div class="sub">That is the <b>minimum buy</b>: every <b>0.01 BNB = 2,100 $AID</b>. The rate never changes — just multiply: <b>0.1 BNB = 21,000 $AID</b>, <b>1 BNB = 210,000 $AID</b>.</div>
+              <div class="sub">Minimum buy. Fixed rate — <b>0.1 BNB = 21,000 $AID</b> · <b>1 BNB = 210,000 $AID</b>.</div>
             </div>
             <div class="calc-box">
               <div class="k">CALCULATOR — HOW MUCH $AID DO YOU GET?</div>
@@ -902,7 +901,7 @@
               </div>
               <div class="calc-out" aria-live="polite">
                 <div class="v"><span id="presaleCalcOut">2,100</span> <small>$AID</small></div>
-                <div class="note" id="presaleCalcNote">At 1 BNB = 210,000 $AID · minimum buy — you can start with just 0.01 BNB.</div>
+                <div class="note" id="presaleCalcNote">1 BNB = 210,000 $AID · this is the minimum buy.</div>
               </div>
             </div>
             <div>
@@ -921,20 +920,19 @@
               PRESALE CONTRACT ADDRESS<br />
               <b>TBD — NOT DEPLOYED YET</b>
             </div>
-            <div class="presale-note"><b>Do not send BNB yet.</b> The only official presale address will be the one published here after the contract is deployed. Any $AID presale address shared elsewhere before then is not official.</div>
+            <div class="presale-note"><b>Do not send BNB yet.</b> The official address will appear above after deploy — any other $AID presale address is not official.</div>
             <div style="margin-top:16px;">
               <button class="btn btn-gold" id="buyAidBtn" aria-describedby="presaleMsg">Buy $AID</button>
               <div class="btn-note" id="presaleMsg" role="status" hidden>
-                <b>Not open yet.</b> The presale contract is not deployed, so there is no address to buy from.
-                Next step: wait for the contract address to appear above — then come back here, tap Buy $AID,
-                and send 0.01–1 BNB to that contract to get $AID instantly (0.01 BNB = 2,100 $AID). Do not send BNB anywhere until then.
+                <b>Not open yet.</b> The presale contract is not deployed — there is no address to buy from.
+                Wait until the address appears above, then tap Buy $AID and send 0.01–1 BNB (0.01 BNB = 2,100 $AID).
               </div>
             </div>
           </div>
           <div class="panel">
             <h3>What you get — per amount</h3>
-            <p>One fixed rate for everyone: <b>1 BNB = 210,000 $AID</b>, so <b>0.01 BNB = 2,100 $AID</b>. No tiers, no bonus tricks — the table is the whole deal.</p>
-            <p><b>Presale vs mining:</b> the presale pays <b>210,000 $AID per BNB</b> — over <b>3×</b> what Paid mining pays per BNB (≈50,000 $AID per BNB at Epoch 1 base tier). Mining earns slowly, session by session; the presale is the fast way in.</p>
+            <p>One fixed rate: <b>1 BNB = 210,000 $AID</b>. No tiers, no bonuses.</p>
+            <p><b>Presale vs mining:</b> presale pays <b>210,000 $AID per BNB</b> — over <b>3×</b> Paid mining (≈50,000 $AID per BNB). Mining is slow; presale is the fast way in.</p>
             <div class="get-table" role="table" aria-label="Presale amounts: BNB paid and $AID received">
               <div class="get-row hl" role="row"><span class="b" role="cell">0.01 BNB</span><span class="a" role="cell">2,100 <small>$AID</small></span><span class="gtag-cell" role="cell"><span class="get-tag">MINIMUM</span></span></div>
               <div class="get-row" role="row"><span class="b" role="cell">0.05 BNB</span><span class="a" role="cell">10,500 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
@@ -945,26 +943,21 @@
             </div>
             <h3>How the presale will work</h3>
             <ol>
-              <li><b>Send BNB to the presale contract</b> — once the sale opens, you buy directly through the presale contract address published here.</li>
-              <li><b>Receive $AID instantly</b> — $AID is delivered to your wallet in the same purchase, at 1 BNB = 210,000 $AID.</li>
-              <li><b>No Agent ID needed</b> — anyone can buy in the presale. Holding a Binance Agent ID is only required to mine, not to buy.</li>
-              <li><b>BNB stays in the contract</b> — raised BNB stays in the presale contract during the sale and is withdrawn to the treasury only after the sale ends.</li>
+              <li><b>Send BNB</b> to the presale contract published here.</li>
+              <li><b>Get $AID instantly</b> — 1 BNB = 210,000 $AID, same purchase.</li>
+              <li><b>No Agent ID needed</b> — anyone can buy. Agent ID is only for mining.</li>
+              <li><b>BNB stays in the contract</b> until the sale ends, then goes to the treasury.</li>
             </ol>
-            <p>The sale runs for 7 days or until sold out, whichever comes first. When the full 10 BNB hard cap is reached, all 2,100,000 $AID in the allocation are sold.</p>
+            <p>Runs 7 days or until sold out. At the 10 BNB cap, all 2,100,000 $AID are sold.</p>
           </div>
         </div>
         <div class="facts">
-          <div class="fact"><div class="fk">STATUS</div><div class="fv">Coming soon <small>— not started, nothing sold yet</small></div></div>
-          <div class="fact"><div class="fk">PRICE</div><div class="fv"><span class="mono">1 BNB = 210,000 $AID</span> <small>— so</small> <span class="mono">0.01 BNB = 2,100 $AID</span> <small>and</small> <span class="mono">0.1 BNB = 21,000 $AID</span></div></div>
-          <div class="fact"><div class="fk">ALLOCATION</div><div class="fv"><span class="mono">2,100,000 $AID</span> <small>— 10% of the 21,000,000 max supply</small></div></div>
-          <div class="fact"><div class="fk">SOURCE OF ALLOCATION</div><div class="fv"><small>Taken from Epoch 1. Mining emission is reduced accordingly — mining keeps</small> <span class="mono">18,900,000 $AID</span> <small>of the 21,000,000 max supply. No extra tokens are created.</small></div></div>
+          <div class="fact"><div class="fk">ALLOCATION</div><div class="fv"><span class="mono">2,100,000 $AID</span> <small>— 10% of supply, from Epoch 1. Mining keeps</small> <span class="mono">18,900,000 $AID</span>.</div></div>
           <div class="fact"><div class="fk">HARD CAP</div><div class="fv"><span class="mono">10 BNB</span></div></div>
           <div class="fact"><div class="fk">MINIMUM BUY</div><div class="fv"><span class="mono">0.01 BNB</span> <small>= 2,100 $AID</small></div></div>
-          <div class="fact"><div class="fk">MAXIMUM PER WALLET</div><div class="fv"><span class="mono">1 BNB</span> <small>= 210,000 $AID per wallet</small></div></div>
-          <div class="fact"><div class="fk">DURATION</div><div class="fv"><span class="mono">7 days</span> <small>— or until sold out, whichever comes first. Start date: TBD</small></div></div>
-          <div class="fact"><div class="fk">DELIVERY</div><div class="fv"><small>$AID is delivered to the buyer</small> <span class="mono">instantly</span> <small>on purchase</small></div></div>
-          <div class="fact"><div class="fk">ELIGIBILITY</div><div class="fv"><small>Open to anyone —</small> <span class="mono">no Agent ID needed</span> <small>to buy the presale</small></div></div>
-          <div class="fact"><div class="fk">WHERE THE BNB GOES</div><div class="fv"><small>Buyers send BNB to the presale contract address. The BNB</small> <span class="mono">stays in the contract</span> <small>during the sale and is withdrawn to the treasury after the sale ends.</small></div></div>
+          <div class="fact"><div class="fk">MAXIMUM PER WALLET</div><div class="fv"><span class="mono">1 BNB</span> <small>= 210,000 $AID</small></div></div>
+          <div class="fact"><div class="fk">DURATION</div><div class="fv"><span class="mono">7 days</span> <small>— or until sold out. Start date: TBD</small></div></div>
+          <div class="fact"><div class="fk">WHERE THE BNB GOES</div><div class="fv"><small>Stays in the presale contract during the sale, then to the treasury.</small></div></div>
           <div class="fact"><div class="fk">PRESALE CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
         </div>
       </section>
@@ -973,14 +966,14 @@
       <section id="roadmap">
         <div class="sec-head">
           <h2>Roadmap</h2>
-          <p>Where $AID stands and what comes next. Dates are marked TBD until they are decided — nothing here is a launch promise.</p>
+          <p>Dates are TBD until decided.</p>
         </div>
         <div class="road">
           <div class="phase live">
             <div class="pnum">01</div>
             <div>
               <h3>Simulation live</h3>
-              <p>The full mining game runs in the browser with the real contract's numbers: Free 3h / Paid 12h sessions, session fee, epochs, upgrades, and referral. Play it above to learn the economy before any real token exists.</p>
+              <p>The mining game runs in your browser with the real contract's numbers. Play it above.</p>
               <div class="when">NOW — LIVE</div>
             </div>
             <span class="pstatus live">LIVE</span>
@@ -989,7 +982,7 @@
             <div class="pnum">02</div>
             <div>
               <h3>Testnet deploy</h3>
-              <p>Deploy the $AID token and the miner contract to BNB Chain testnet and run the full flow end to end: start a session, accrue, claim, upgrade, refer.</p>
+              <p>Deploy $AID and the miner to BNB testnet. Test the full flow: start, claim, upgrade, refer.</p>
               <div class="when">DATE: TBD</div>
             </div>
             <span class="pstatus next">UPCOMING</span>
@@ -998,7 +991,7 @@
             <div class="pnum">03</div>
             <div>
               <h3>Mainnet deploy + verification</h3>
-              <p>Deploy to BNB Chain mainnet (chain ID 56) and verify both contracts so anyone can read the source. The contract addresses will be published here, replacing the TBD above.</p>
+              <p>Deploy to BNB mainnet (chain ID 56) and verify both contracts. Addresses replace the TBD above.</p>
               <div class="when">DATE: TBD</div>
             </div>
             <span class="pstatus next">UPCOMING</span>
@@ -1007,7 +1000,7 @@
             <div class="pnum">04</div>
             <div>
               <h3>Mining opens</h3>
-              <p>Real mining starts: hold a Binance Agent ID, start a session on the live contract, and earn real $AID. This page switches from simulation to the deployed contracts.</p>
+              <p>Hold a Binance Agent ID, start a session, earn real $AID. This page switches to the live contracts.</p>
               <div class="when">DATE: TBD</div>
             </div>
             <span class="pstatus next">UPCOMING</span>
@@ -1016,7 +1009,7 @@
             <div class="pnum">05</div>
             <div>
               <h3>Liquidity &amp; listing</h3>
-              <p>Add liquidity so $AID can trade, and pursue listings. No venue or date is decided yet — anything announced elsewhere before it appears here is not official.</p>
+              <p>Add liquidity so $AID can trade, then pursue listings. Nothing is official until it appears here.</p>
               <div class="when">DATE: TBD</div>
             </div>
             <span class="pstatus next">UPCOMING</span>
@@ -1028,46 +1021,46 @@
       <section id="docs">
         <div class="sec-head">
           <h2>Docs</h2>
-          <p>How to play, how agents will mine on the real contract, and straight answers to common questions.</p>
+          <p>How to play, and answers to common questions.</p>
         </div>
         <div class="docs-grid">
           <div class="panel">
             <h3>How to play (simulation)</h3>
             <ol>
-              <li><b>Connect your Agent ID</b> — one tap in the console creates a simulated identity. No wallet needed.</li>
-              <li><b>Start a machine — pick Free or Paid</b> — each of your 2 slots runs one session per start. <b>Free</b> lasts <b>3 hours</b>, costs 0 BNB, and mines at ×1 speed (100 $AID/day rate in Epoch 1, accruing only during those 3 hours). <b>Paid</b> lasts <b>12 hours</b>, costs 0.003 BNB from your simulated BNB wallet charged instantly at start, and mines at ×3 speed (300 $AID/day rate in Epoch 1, ≈150 $AID per full Paid session at base tier). Paid stacks with upgrades: Turbo ×2 + Paid ×3 = ×6, Quantum ×4 + Paid ×3 = ×12. If your simulated BNB is below 0.003, the Paid start is refused — top up or start Free instead.</li>
-              <li><b>Claim $AID</b> — machines accrue every second. Claim whenever you like, per slot or all at once.</li>
-              <li><b>Upgrade</b> — each upgrade costs mined $AID <b>plus</b> 0.003 BNB from your simulated BNB wallet: Turbo Miner ×2 = <b>500 $AID + 0.003 BNB</b>, Quantum Rig ×4 = <b>2,000 $AID + 0.003 BNB</b>. Unclaimed $AID on your machines counts too — tapping Upgrade claims it for you first. If your BNB balance is below 0.003, the upgrade is refused — tap Top Up first.</li>
-              <li><b>Invite</b> — share your referral code and earn +10% of what invitees mine, minted on top, plus 10% of their session fees.</li>
+              <li><b>Connect your Agent ID</b> — one tap in the console. No wallet needed.</li>
+              <li><b>Start a machine</b> — <b>Free</b> (3h, ×1, 0 BNB) or <b>Paid</b> (12h, ×3, 0.003 BNB up front). Paid stacks with upgrades: Turbo ×2 + Paid ×3 = ×6. Not enough BNB? Top up or start Free.</li>
+              <li><b>Claim $AID</b> — machines earn every second. Claim per slot or all at once.</li>
+              <li><b>Upgrade</b> — Turbo ×2 = <b>500 $AID + 0.003 BNB</b> · Quantum ×4 = <b>2,000 $AID + 0.003 BNB</b>. Unclaimed $AID counts — Upgrade claims it first.</li>
+              <li><b>Invite</b> — earn +10% of what invitees mine, plus 10% of their session fees.</li>
             </ol>
-            <p>Progress is saved in this browser only. The numbers match the real contract's design, so what you learn here carries over when mining opens.</p>
+            <p>Progress is saved in this browser only.</p>
           </div>
           <div class="panel">
             <h3>Agent prompt — real contract</h3>
-            <p>When the contract is deployed, an agent holding a Binance Agent ID can mine with a single instruction. The address stays TBD until mainnet deploy:</p>
+            <p>Once deployed, an agent with a Binance Agent ID can mine with one instruction. Address is TBD until then:</p>
             <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain: call startMining() on the AgentID Miner contract at [CONTRACT ADDRESS — TBD, not deployed yet] — start a free 3h session at ×1 speed, or pay exactly 0.003 BNB up front for a paid 12h session at ×3 speed — then claim my $AID with claim() when each session ends, and repeat.</div>
             <div class="ref-link-row" style="margin-top:12px;">
               <button class="btn btn-gold btn-sm" id="copyPromptBtn">Copy Prompt</button>
             </div>
-            <p style="margin-top:14px;">Sessions come in two types: Free (3 hours, 0 BNB, ×1 speed) and Paid (12 hours, 0.003 BNB up front, ×3 speed, stacking with tier multipliers). Rewards follow the epoch rate (×1 / ×0.5 / ×0.25 / ×0.125), and each upgrade costs $AID plus 0.003 BNB: Turbo ×2 = 500 $AID + 0.003 BNB, Quantum ×4 = 2,000 $AID + 0.003 BNB (the $AID part is burned).</p>
+            <p style="margin-top:14px;">Free: 3h · ×1 · 0 BNB. Paid: 12h · ×3 · 0.003 BNB. Upgrades: $AID (burned) + 0.003 BNB.</p>
           </div>
         </div>
         <div class="faq">
           <div class="faq-item">
             <h3>Is $AID real yet?</h3>
-            <p>No. The contracts are written and tested, but they are not deployed — there is no contract address, no liquidity, and no market price. Everything on this page today is a simulation with play balances. If someone offers you "$AID" now, it is not this token.</p>
+            <p>No. The contracts are written and tested, but not deployed — no address, no liquidity, no price. Everything here is a simulation. If someone offers you "$AID" now, it is not this token.</p>
           </div>
           <div class="faq-item">
             <h3>Where do session fees go?</h3>
-            <p>Only Paid sessions have a fee — Free sessions cost 0 BNB and charge nothing. On the real contract design, each Paid session's 0.003 BNB fee, paid up front for a 12-hour session at ×3 speed, is split automatically: 90% (0.0027 BNB) goes to the project treasury wallet set at deployment, and 10% (0.0003 BNB) goes to the referrer of the miner, who claims it themselves. The miner contract has no owner who can redirect fees. In this simulation the same split is shown with play BNB.</p>
+            <p>Only Paid sessions have a fee (0.003 BNB). Split: 90% (0.0027 BNB) to the treasury, 10% (0.0003 BNB) to the referrer. Free sessions are free. Same split here, with play BNB.</p>
           </div>
           <div class="faq-item">
             <h3>What is an Agent ID?</h3>
-            <p>A Binance Agent ID is an on-chain identity for AI agents on BNB Chain. The real AgentIdMiner contract checks that your wallet holds one before it lets you start a mining session — your agent's identity is its mining license. In the simulation, the "Connect" button in the console stands in for that check.</p>
+            <p>A Binance Agent ID is an on-chain identity for AI agents on BNB Chain. The real contract checks your wallet holds one before you can mine. Here, the Connect button stands in for that check.</p>
           </div>
           <div class="faq-item">
             <h3>Can I lose my progress?</h3>
-            <p>In the simulation, yes — progress lives only in this browser's local storage, so clearing site data resets the game. Once mining is live on-chain, balances and sessions will live in the contracts instead.</p>
+            <p>In the simulation, yes — progress lives in this browser only. On-chain, balances and sessions will live in the contracts.</p>
           </div>
         </div>
       </section>
@@ -1076,46 +1069,44 @@
       <section id="whitepaper">
         <div class="sec-head">
           <h2>Whitepaper — summary</h2>
-          <p>The short version, on one page. A full PDF whitepaper is not published yet — this summary is the current canonical text.</p>
+          <p>The short version. No PDF yet — this page is the current text.</p>
         </div>
         <div class="wp-grid">
           <div class="wp-item">
             <div class="wn">01 · PROBLEM</div>
             <h3>Agents have no way to earn</h3>
-            <p>AI agents can hold wallets and call contracts, but almost nothing is built for them to do productively on-chain. At the same time, token launches usually hand supply to insiders first and let the public buy later. $AID flips that: aside from a single public presale of 2,100,000 $AID (10% of supply, taken from Epoch 1), the supply enters the world only through an agent identity doing the work of mining, one session at a time (Free 3h, Paid 12h), under rules anyone can read in the contract.</p>
+            <p>AI agents can hold wallets and call contracts, but almost nothing lets them earn on-chain. Token launches usually give supply to insiders first. $AID flips that: besides one public presale (2,100,000 $AID, 10% of supply, from Epoch 1), supply is created only by mining — one session at a time, under rules anyone can read.</p>
           </div>
           <div class="wp-item">
             <div class="wn">02 · MINING ECONOMY</div>
             <h3>Work in sessions, earn by the second</h3>
-            <p>A miner starts a session — Free for 3 hours, or Paid for 12 hours — and accrues $AID every second at the current epoch rate. A Free Miner earns 100 $AID per day in Epoch 1. Two machine slots per miner keep the game balanced, and upgrades multiply output: Turbo Miner ×2 and Quantum Rig ×4. Every session is a choice: start Free at ×1 speed for 0 BNB (the first session is free on this path), or pay 0.003 BNB up front for a Paid session at ×3 speed — the paid multiplier stacks with tier upgrades, so a Quantum Rig on a Paid session runs at ×12. A full Free session (3h at the 100 $AID/day rate) earns ≈12.5 $AID at base tier in Epoch 1; a full Paid session (12h at the 300 $AID/day rate) earns ≈150 $AID. Free sessions keep mining open to anyone; the paid option only buys speed and time.</p>
+            <p>Start a session — Free 3h or Paid 12h — and earn $AID every second at the epoch rate. A Free Miner earns 100 $AID/day in Epoch 1. Two slots per miner. Upgrades multiply output: Turbo ×2, Quantum ×4. Paid costs 0.003 BNB for ×3 speed and stacks with tiers (Quantum + Paid = ×12). A full Free session earns ≈12.5 $AID; a full Paid session ≈150 $AID (base tier, Epoch 1).</p>
           </div>
           <div class="wp-item">
             <div class="wn">03 · TOKENOMICS</div>
             <h3>21 million — 10% presale, 90% mined</h3>
-            <p>Max supply is 21,000,000 $AID (18 decimals, BNB Chain). Of that, 2,100,000 $AID (10%) is the presale allocation, taken from Epoch 1; the remaining 18,900,000 $AID (90%) is emitted through mining. Mining emission runs in 4 epochs: Epoch 1 contributes 3,150,000 $AID of mining on top of the presale allocation, and Epochs 2–4 contribute 5,250,000 $AID each. The reward rate halves each epoch: ×1, ×0.5, ×0.25, ×0.125. There is no team or investor allocation in the design — beyond the public presale, $AID is created only when a miner's session accrues it. Upgrade payments (500 / 2,000 $AID) are burned, so active play permanently shrinks the circulating supply.</p>
+            <p>Max supply 21,000,000 $AID (18 decimals, BNB Chain). Presale: 2,100,000 (10%), from Epoch 1. Mining: 18,900,000 (90%) over 4 epochs — Epoch 1 mints 3,150,000, Epochs 2–4 mint 5,250,000 each. The rate halves each epoch: ×1, ×0.5, ×0.25, ×0.125. No team or investor allocation. Upgrade payments (500 / 2,000 $AID) are burned.</p>
           </div>
           <div class="wp-item">
             <div class="wn">04 · REFERRAL</div>
             <h3>+10%, minted on top</h3>
-            <p>Growth is rewarded without taxing the new miner. When an invitee mines, the referrer receives a bonus equal to 10% of the mined amount, minted on top — the invitee keeps 100%. Referrers also receive 10% of the session fees their invitees pay, claimable by the referrer directly from the contract, while the other 90% of each fee goes to the treasury.</p>
+            <p>When an invitee mines, the referrer gets +10% of the mined amount, minted on top — the invitee keeps 100%. Referrers also get 10% of invitees' session fees; the other 90% goes to the treasury.</p>
           </div>
           <div class="wp-item" style="grid-column: 1 / -1;">
             <div class="wn">05 · RISKS</div>
             <h3>Read this before you mine</h3>
-            <p>$AID is not deployed yet: there is no contract address, no liquidity, and no price, and the launch timeline is undecided (all dates TBD). When it does launch, mined $AID will have value only if a market forms — it may trade at or near zero, and session fees paid in BNB are spent whether or not the token gains value. Smart contracts can contain bugs even after testing; no audit is claimed at this stage. The simulation on this page uses play balances and carries no value at all. Never pay anyone for "$AID" before the official contract address is published here.</p>
+            <p>$AID is not deployed yet: no address, no liquidity, no price, no set launch date. If a market forms, $AID may still trade near zero — BNB fees are spent either way. Contracts can have bugs; no audit is claimed yet. This simulation uses play balances with no value. Never pay for "$AID" before the official address appears here.</p>
           </div>
         </div>
       </section>
 
       <footer>
         <p>
-          <b>Simulation notice:</b> Agent ID Miner is a game simulation. $AID is a simulated token with
-          <b>no real value</b> — it is not cryptocurrency, it is not on any blockchain, and it cannot be bought,
-          sold, or withdrawn. Session fees are charged in simulated BNB inside the game only — no real BNB
-          is spent or moved. Progress is saved only in this browser (localStorage); clearing your browser
-          data resets the game.
+          <b>Simulation notice:</b> Agent ID Miner is a game. $AID is a simulated token with
+          <b>no real value</b> — not crypto, not on any blockchain, cannot be bought, sold, or withdrawn.
+          Fees are simulated BNB inside the game only. Progress is saved only in this browser.
         </p>
-        <p class="mono" style="font-size:12px;">$AID · AGENT ID · SUPPLY 21,000,000 · 4 EPOCHS · 3 HALVINGS · FREE SESSION 3H ×1 · 0 BNB · PAID SESSION 12H ×3 · 0.003 BNB (SIM) · SIMULATION ONLY</p>
+        <p class="mono" style="font-size:12px;">$AID · SUPPLY 21,000,000 · FREE 3H ×1 · PAID 12H ×3 · 0.003 BNB (SIM) · SIMULATION ONLY</p>
       </footer>
     </div>
 
@@ -1320,16 +1311,12 @@
             "</div>" +
             '<div class="eq" id="eq-' + i + '" aria-hidden="true">' + eqSpans + "</div>" +
             '<div class="m-grid">' +
-              '<span class="k">Nominal rate</span><span class="val">' + fmt0(machineHash(m)) + " MH/s</span>" +
               '<span class="k">Earns</span><span class="val">' + (machineRate(m) * 86400).toFixed(1) + " $AID/day</span>" +
               '<span class="k">Time left</span><span class="val" id="left-' + i + '">' + (m.running ? clock(remaining) + " / " + sessionHoursLabel(m) : "—") + "</span>" +
-              '<span class="k">Session</span><span class="val">' + (m.running ? sessionHoursLabel(m) : "Free 3h / Paid 12h") + '</span>' +
-              '<span class="k">Session type</span><span class="val">' +
+              '<span class="k">Session</span><span class="val">' +
               (m.running
-                ? (isPaid ? "PAID · ×" + PAID_MULT + " BOOST · 12h" : "FREE · ×1 · 3h")
-                : "Free 3h ×1 · 0 BNB / Paid 12h ×" + PAID_MULT + " · " + SESSION_FEE.toFixed(3) + " BNB") + "</span>" +
-              '<span class="k">Speed</span><span class="val">' +
-              ("Tier ×" + tier.mult + (m.running && isPaid ? " × Paid ×" + PAID_MULT + " = ×" + (tier.mult * PAID_MULT) : " · Paid would make ×" + (tier.mult * PAID_MULT))) + "</span>" +
+                ? (isPaid ? "Paid · 12h · ×" + PAID_MULT : "Free · 3h · ×1")
+                : "Free 3h ×1 · Paid 12h ×" + PAID_MULT) + "</span>" +
               '<span class="k">Next upgrade</span><span class="val">' +
               (next ? next.name + " · " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB" : "— max tier") + "</span>" +
             "</div>" +
@@ -1340,14 +1327,31 @@
               upgradeBtn +
             "</div>" +
             (m.running
-              ? '<div class="session-note">Session: <b>' + (isPaid ? "PAID ×" + PAID_MULT + " · 12h" : "FREE ×1 · 3h") + "</b> — type, duration and speed are locked in for this whole session and stack with the tier above. Countdown shows time left of the full " + sessionHoursLabel(m) + '.</div>'
-              : '<div class="session-note"><b>Free</b> = 3 hours at ×1 speed, 0 BNB (100 $AID/day rate — a full Free session earns ≈12.5 $AID at base tier, Epoch 1). <b>Paid</b> = 12 hours at ×' + PAID_MULT + ' speed, ' + SESSION_FEE.toFixed(3) + ' BNB paid instantly at start (300 $AID/day rate — a full Paid session earns ≈150 $AID at base tier, Epoch 1).' +
-                (paidAfford ? "" : " <b>Not enough BNB for Paid — tap Top Up in the console, or start Free.</b>") + "</div>") +
+              ? '<div class="session-note">Session: <b>' + (isPaid ? "Paid ×" + PAID_MULT + " · 12h" : "Free ×1 · 3h") + "</b> — locked until the countdown ends.</div>"
+              : '<div class="session-note"><b>Free</b> ≈12.5 $AID per session · <b>Paid</b> ≈150 $AID per session (base tier, Epoch 1).' +
+                (paidAfford ? "" : " <b>Not enough BNB for Paid — tap Top Up, or start Free.</b>") + "</div>") +
           "</article>"
         );
       }
       function renderMachines() {
+        // render() rebuilds these cards on every action, which would drop
+        // keyboard focus to <body> — remember the pressed button and put
+        // focus back on its replacement so every button stays reachable.
+        var ae = document.activeElement;
+        var fAct = null, fIdx = null;
+        if (ae && machinesEl.contains(ae) && ae.getAttribute) {
+          fAct = ae.getAttribute("data-act");
+          fIdx = ae.getAttribute("data-i");
+        }
         machinesEl.innerHTML = state.machines.map(machineCard).join("");
+        if (fAct && (!ae || !document.contains(ae))) {
+          var nb = machinesEl.querySelector('button[data-act="' + fAct + '"][data-i="' + fIdx + '"]');
+          if (!nb && fIdx != null) {
+            var card = machinesEl.children[parseInt(fIdx, 10)];
+            if (card) nb = card.querySelector(".m-actions button");
+          }
+          if (nb) nb.focus({ preventScroll: true });
+        }
       }
 
       /* ---------- epochs UI ---------- */
@@ -1363,8 +1367,8 @@
             '<div class="epoch' + (i === cur ? " now" : "") + '">' +
               '<div class="n">EPOCH ' + (i + 1) + "</div>" +
               '<div class="r">×' + mult.toFixed(3).replace(/0+$/, "").replace(/\.$/, ".0") + "</div>" +
-              '<div class="d">Reward rate for mined ' + fmtInt(from) + " – " + fmtInt(to) + " $AID." +
-              (i === 0 ? " Full reward." : " Halved from the epoch before.") + "</div>" +
+              '<div class="d">' + fmtInt(from) + " – " + fmtInt(to) + " $AID" +
+              (i === 0 ? " · full reward." : " · half the rate before.") + "</div>" +
               tag +
             "</div>"
           );
@@ -1379,8 +1383,8 @@
         el("balance").textContent = fmt(state.balance);
         el("totalEarned").textContent = fmt(state.totalEarned);
         el("bnbBalance").textContent = fmtBnb(state.bnb);
-        el("bnbSub").textContent = "Paid session ×" + PAID_MULT + ": " + SESSION_FEE.toFixed(3) + " BNB · upgrade: +" + UPGRADE_BNB.toFixed(3) +
-          " BNB · spent " + fmtBnb(state.feesPaid) + " BNB so far · Free session: 0 BNB";
+        el("bnbSub").textContent = "Paid: " + SESSION_FEE.toFixed(3) + " BNB · Upgrade: +" + UPGRADE_BNB.toFixed(3) +
+          " BNB · Free: 0 BNB · Spent: " + fmtBnb(state.feesPaid) + " BNB";
         var totalHash = state.machines.reduce(function (s, m) { return s + machineHash(m); }, 0);
         var perDay = state.machines.reduce(function (s, m) { return s + machineRate(m) * 86400; }, 0);
         el("hashPower").textContent = fmt0(totalHash);
@@ -1432,8 +1436,7 @@
         }
         var fee = paid ? SESSION_FEE : 0;
         if (paid && state.bnb < fee) {
-          addLog("Slot " + (i + 1) + " Paid session refused — not enough simulated BNB for the " +
-            SESSION_FEE.toFixed(3) + " BNB paid-session fee. Top up in the console, or start a Free 3h session instead.");
+          addLog("Slot " + (i + 1) + " Paid refused — not enough BNB. Top up, or start Free.");
           toast("Not enough BNB for Paid ×" + PAID_MULT + " — tap Top Up first, or start Free.");
           save(); render();
           return;
@@ -1447,13 +1450,13 @@
         m.sessionMs = paid ? SESSION_MS : FREE_SESSION_MS;
         m.endsAt = Date.now() + m.sessionMs;
         m.lastAt = Date.now();
-        addLog("Slot " + (i + 1) + " started a " + (paid ? "PAID" : "FREE") + " session — " + TIERS[m.tier].name +
+        addLog("Slot " + (i + 1) + " started " + (paid ? "PAID" : "FREE") + " — " + TIERS[m.tier].name +
           (paid
-            ? ", 12 hours at ×" + PAID_MULT + " speed (tier ×" + TIERS[m.tier].mult + " × Paid ×" + PAID_MULT + " = ×" + (TIERS[m.tier].mult * PAID_MULT) + "). Paid instantly: " + fmtBnb(fee) + " BNB (simulated)."
-            : ", 3 hours at ×1 speed. No fee charged — free session."));
+            ? ", 12h at ×" + (TIERS[m.tier].mult * PAID_MULT) + " total. Paid " + fmtBnb(fee) + " BNB (sim)."
+            : ", 3h at ×1. No fee."));
         toast(paid
-          ? "Slot " + (i + 1) + " PAID mining ×" + PAID_MULT + " for 12h — " + SESSION_FEE.toFixed(3) + " BNB paid (sim)."
-          : "Slot " + (i + 1) + " FREE mining ×1 for 3 hours — no fee.");
+          ? "Slot " + (i + 1) + " PAID ×" + PAID_MULT + " for 12h — " + SESSION_FEE.toFixed(3) + " BNB paid (sim)."
+          : "Slot " + (i + 1) + " FREE ×1 for 3h — no fee.");
         save(); render();
       }
       function claimMachine(i, silent) {
@@ -1495,7 +1498,7 @@
         }
         if (state.bnb < UPGRADE_BNB) {
           addLog("Slot " + (i + 1) + " upgrade refused — " + next.name + " also needs " + UPGRADE_BNB.toFixed(3) +
-            " BNB (simulated) on top of " + fmt0(next.cost) + " $AID, and your BNB wallet is short. Top up first.");
+            " BNB (sim). Top up first.");
           toast("Need " + UPGRADE_BNB.toFixed(3) + " BNB for the upgrade — tap Top Up first.");
           save(); render();
           return;
@@ -1504,8 +1507,8 @@
         state.bnb -= UPGRADE_BNB;
         state.feesPaid += UPGRADE_BNB;
         m.tier += 1;
-        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — hash rate ×" + next.mult +
-          ". Paid " + fmt0(next.cost) + " $AID (burned) + " + fmtBnb(UPGRADE_BNB) + " BNB (simulated).");
+        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — ×" + next.mult +
+          ". Paid " + fmt0(next.cost) + " $AID (burned) + " + fmtBnb(UPGRADE_BNB) + " BNB (sim).");
         toast("Slot " + (i + 1) + " upgraded to " + next.name + " — " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB paid.");
         save(); render();
       }
@@ -1532,7 +1535,7 @@
       el("heroStart").addEventListener("click", function () {
         document.getElementById("console").scrollIntoView({ behavior: "smooth" });
         if (!state.agentId) connectAgent();
-        toast("Pick per slot in the console: Free 3h ×1, or Paid 12h ×" + PAID_MULT + " for 0.003 BNB (sim).");
+        toast("Pick per slot below: Free 3h ×1, or Paid 12h ×" + PAID_MULT + " for 0.003 BNB (sim).");
       });
       el("claimAllBtn").addEventListener("click", function () {
         var total = 0;
@@ -1596,26 +1599,26 @@
           });
           if (!isFinite(bnb) || bnb <= 0) {
             out.textContent = "0";
-            note.textContent = "Type an amount — for example 0.01 BNB gets you 2,100 $AID.";
+            note.textContent = "Type an amount — 0.01 BNB gets you 2,100 $AID.";
             note.className = "note";
             return;
           }
           var aid = bnb * RATE;
           out.textContent = fmtInt(aid);
           if (bnb < MIN_BNB) {
-            note.textContent = "Below the minimum — the smallest buy is 0.01 BNB = 2,100 $AID.";
+            note.textContent = "Below the minimum — smallest buy is 0.01 BNB = 2,100 $AID.";
             note.className = "note err";
           } else if (bnb > MAX_BNB) {
-            note.textContent = "Over the max per wallet — capped at 1 BNB = 210,000 $AID per wallet. This amount would need more than one wallet.";
+            note.textContent = "Over the max — capped at 1 BNB = 210,000 $AID per wallet.";
             note.className = "note warn";
           } else if (Math.abs(bnb - MIN_BNB) < 1e-9) {
-            note.textContent = "At 1 BNB = 210,000 $AID · minimum buy — you can start with just 0.01 BNB.";
+            note.textContent = "1 BNB = 210,000 $AID · this is the minimum buy.";
             note.className = "note";
           } else if (Math.abs(bnb - MAX_BNB) < 1e-9) {
-            note.textContent = "At 1 BNB = 210,000 $AID · maximum per wallet — the biggest single-wallet buy.";
+            note.textContent = "1 BNB = 210,000 $AID · maximum per wallet.";
             note.className = "note";
           } else {
-            note.textContent = "At 1 BNB = 210,000 $AID · " + bnb.toLocaleString("en-US", { maximumFractionDigits: 6 }) + " BNB × 210,000 = " + fmtInt(aid) + " $AID, delivered instantly on purchase.";
+            note.textContent = "1 BNB = 210,000 $AID · " + bnb.toLocaleString("en-US", { maximumFractionDigits: 6 }) + " BNB × 210,000 = " + fmtInt(aid) + " $AID, delivered instantly.";
             note.className = "note";
           }
         }
