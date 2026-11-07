@@ -225,6 +225,12 @@
       .status.run { background: rgba(74, 222, 128, 0.15); color: var(--green); }
       .status.idle { background: rgba(147, 164, 135, 0.15); color: var(--term-dim); }
       .status.done { background: rgba(240, 185, 11, 0.16); color: var(--gold); }
+      .status.boost { background: rgba(240, 185, 11, 0.2); color: var(--gold); border: 1px solid rgba(240, 185, 11, 0.55); }
+      .btn-paid { background: var(--gold); color: #191304; }
+      .btn-paid:hover { background: #ffc81f; }
+      .btn-paid.low { background: transparent; color: var(--gold); border: 1.5px solid rgba(240, 185, 11, 0.5); opacity: 0.75; }
+      .session-note { font-size: 12.5px; line-height: 1.55; color: var(--term-dim); margin-top: 10px; }
+      .session-note b { color: var(--gold); }
       .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 14px 0; font-size: 13px; }
       .m-grid .k { color: var(--term-dim); }
       .m-grid .val { font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--term); text-align: right; }
@@ -359,6 +365,57 @@
       .presale-address b { color: var(--gold); }
       .presale-note { margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--term-dim); }
       .presale-note b { color: var(--term); }
+
+      /* presale — what you get per amount */
+      .presale-get {
+        margin: 14px 0 16px; background: rgba(240,185,11,0.10);
+        border: 1.5px solid rgba(240,185,11,0.55); border-radius: 12px; padding: 16px;
+      }
+      .presale-get .k { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--gold); font-weight: 800; }
+      .presale-get .big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; margin-top: 8px; font-family: "JetBrains Mono", monospace; font-weight: 800; color: #fff; }
+      .presale-get .big .from { font-size: 22px; }
+      .presale-get .big .arrow { color: var(--gold); font-size: 20px; }
+      .presale-get .big .to { font-size: 30px; color: var(--gold); }
+      .presale-get .big .to small { font-size: 15px; color: #fff; }
+      .presale-get .sub { margin-top: 6px; font-size: 13px; line-height: 1.55; color: var(--term-dim); }
+      .presale-get .sub b { color: var(--term); }
+      .get-table { display: grid; gap: 0; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; margin: 0 0 16px; }
+      .get-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--line); font-size: 14px; }
+      .get-row:last-child { border-bottom: 0; }
+      .get-row.hl { background: rgba(240,185,11,0.14); }
+      .get-row .b { font-family: "JetBrains Mono", monospace; font-weight: 800; color: var(--ink); white-space: nowrap; }
+      .get-row .a { font-family: "JetBrains Mono", monospace; font-weight: 800; text-align: right; color: var(--ink); }
+      .get-row .a small { color: var(--ink-soft); font-weight: 600; }
+      .get-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: var(--gold); color: #191304; white-space: nowrap; }
+      .get-tag.soft { background: var(--bg-soft); color: var(--ink-soft); }
+      @media (max-width: 480px) {
+        .get-row { grid-template-columns: 86px 1fr; }
+        .get-row .a { grid-column: 2; text-align: left; }
+        .get-row .gtag-cell { grid-column: 2; }
+        .presale-get .big .to { font-size: 26px; }
+      }
+      /* presale calculator */
+      .calc-box { margin-top: 16px; background: #050705; border: 1px solid var(--console-line); border-radius: 12px; padding: 16px; }
+      .calc-box .k { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--term-dim); font-weight: 800; }
+      .calc-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .calc-input-wrap { flex: 1 1 170px; display: flex; align-items: center; background: var(--console-2); border: 1.5px solid var(--console-line); border-radius: 9px; padding: 0 12px; min-width: 0; }
+      .calc-input-wrap:focus-within { border-color: var(--gold); }
+      .calc-input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #fff; font-family: "JetBrains Mono", monospace; font-size: 20px; font-weight: 800; padding: 11px 0; }
+      .calc-input-wrap .unit { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 800; color: var(--gold); }
+      .calc-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+      .calc-preset {
+        appearance: none; cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700;
+        padding: 8px 11px; min-height: 36px; border-radius: 999px;
+        background: transparent; color: var(--term); border: 1.5px solid var(--console-line);
+      }
+      .calc-preset:hover { border-color: var(--gold); color: var(--gold); }
+      .calc-preset.on { background: var(--gold); border-color: var(--gold); color: #191304; }
+      .calc-out { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--console-line); }
+      .calc-out .v { font-family: "JetBrains Mono", monospace; font-size: clamp(26px, 4vw, 34px); font-weight: 800; color: var(--gold); line-height: 1.1; }
+      .calc-out .v small { font-size: 15px; color: #fff; }
+      .calc-out .note { margin-top: 5px; font-size: 13px; line-height: 1.55; color: var(--term-dim); }
+      .calc-out .note.warn { color: var(--gold); font-weight: 700; }
+      .calc-out .note.err { color: var(--red); font-weight: 700; }
 
       /* ---------- roadmap ---------- */
       .road { display: grid; gap: 12px; }
@@ -577,9 +634,10 @@
           </div>
           <h1>Your Agent ID mines <span class="tk">$AID</span> for you.</h1>
           <p class="lede">
-            Connect a simulated Agent ID, start the Free Miner, and earn $AID around the clock.
-            Two machine slots, a hard cap of 21 million, sessions at 0.003 BNB (simulated) with
-            the first one free, and a 10% referral bonus minted on top.
+            Connect a simulated Agent ID, start a machine, and earn $AID around the clock.
+            Two machine slots, a hard cap of 21 million, and every session is your choice:
+            <b>Free — 3 hours at ×1 speed</b>, or <b>Paid — 12 hours at ×3 speed for 0.003 BNB (simulated)</b>.
+            Plus a 10% referral bonus minted on top.
           </p>
           <div class="cta-row">
             <button class="btn btn-gold" id="heroStart">Start Mining</button>
@@ -588,8 +646,9 @@
           <div class="chips">
             <span class="chip">Supply <b>21,000,000 $AID</b></span>
             <span class="chip"><b>4</b> epochs · <b>3</b> halvings</span>
-            <span class="chip"><b>24h</b> sessions · fee <b>0.003 BNB</b> (sim)</span>
-            <span class="chip">First session <b>FREE</b></span>
+            <span class="chip">Sessions <b>Free 3h / Paid 12h</b> · pick per start</span>
+            <span class="chip">Free session <b>3h · ×1 · 0 BNB</b></span>
+            <span class="chip">Paid session <b>12h · ×3 · 0.003 BNB</b> (sim)</span>
             <span class="chip">Referral <b>+10%</b></span>
           </div>
         </div>
@@ -667,7 +726,7 @@
       <section id="console">
         <div class="sec-head">
           <h2>Mining console</h2>
-          <p>Sessions run in real time. Fees are simulated BNB — the first session is free, then 0.003 BNB per session.</p>
+          <p>Sessions run in real time. Every start is a choice: Free (3 hours, ×1 speed, 0 BNB) or Paid (12 hours, ×3 speed, 0.003 BNB simulated) — paid is charged instantly when the session starts. You can still choose Paid on your very first session to go faster instead of taking the Free one.</p>
         </div>
         <div class="console">
           <div class="console-top">
@@ -687,7 +746,7 @@
             <div class="stat">
               <div class="k">BNB WALLET (SIM)</div>
               <div class="v"><span id="bnbBalance">0.01000</span> <small>BNB</small></div>
-              <div class="sub" id="bnbSub">Fee 0.003 BNB/session · first session FREE</div>
+              <div class="sub" id="bnbSub">Free ×1: 0 BNB · Paid ×3: 0.003 BNB/session (sim) · Upgrade: +0.003 BNB</div>
               <div class="agent-line">
                 <button class="btn btn-line btn-sm" id="topupBtn">Top Up</button>
               </div>
@@ -731,7 +790,7 @@
       <section id="referral">
         <div class="sec-head">
           <h2>Referral: +10%, minted on top</h2>
-          <p>10% of invitee mining, minted on top — plus 10% of the session fees they pay.</p>
+          <p>10% of invitee mining, minted on top — plus 10% of the Paid session fees they pay (Free sessions have no fee).</p>
         </div>
         <div class="ref-grid">
           <div class="panel">
@@ -771,8 +830,8 @@
           </div>
           <div class="step">
             <div class="num">STEP 2</div>
-            <h3>Start the Free Miner</h3>
-            <p>Each machine runs a 24-hour session and earns $AID every second. Your first session is free; after that, each session costs 0.003 BNB (simulated). Upgrade machines with mined $AID to go faster.</p>
+            <h3>Pick Free or Paid</h3>
+            <p>Each start, you pick the session: <b>Free</b> runs 3 hours at ×1 speed for 0 BNB, or <b>Paid</b> runs 12 hours at ×3 speed for <b>0.003 BNB</b> (simulated) paid up front. Paid stacks with tier upgrades. Upgrades cost mined $AID plus 0.003 BNB each — Turbo 500 $AID + 0.003 BNB, Quantum 2,000 $AID + 0.003 BNB.</p>
           </div>
           <div class="step">
             <div class="num">STEP 3</div>
@@ -801,9 +860,9 @@
           <div class="fact"><div class="fk">CHAIN</div><div class="fv">BNB Chain <small>· chain ID</small> <span class="mono">56</span></div></div>
           <div class="fact"><div class="fk">DECIMALS</div><div class="fv"><span class="mono">18</span></div></div>
           <div class="fact"><div class="fk">MAX SUPPLY</div><div class="fv"><span class="mono">21,000,000 $AID</span> <small>— hard cap. Split:</small> <span class="mono">2,100,000 $AID (10%)</span> <small>presale allocation,</small> <span class="mono">18,900,000 $AID (90%)</span> <small>minted through mining</small></div></div>
-          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000 $AID</span> presale + <span class="mono">3,150,000 $AID</span> mining. Epochs 2–4: <span class="mono">5,250,000 $AID</span> mining each. Total mining emission: <span class="mono">18,900,000 $AID</span>. Reward rate per epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span> (3 halvings). A Free Miner earns <span class="mono">864 $AID/day</span> in Epoch 1.</div></div>
-          <div class="fact"><div class="fk">SESSION FEE</div><div class="fv"><span class="mono">0.003 BNB</span> per 24-hour session — <small>first session free</small>. Split: <span class="mono">90% (0.0027 BNB)</span> to the treasury, <span class="mono">10% (0.0003 BNB)</span> to the referrer.</div></div>
-          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID</span>. <small>Upgrade fees are burned.</small></div></div>
+          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000 $AID</span> presale + <span class="mono">3,150,000 $AID</span> mining. Epochs 2–4: <span class="mono">5,250,000 $AID</span> mining each. Total mining emission: <span class="mono">18,900,000 $AID</span>. Reward rate per epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span> (3 halvings). A Free Miner earns <span class="mono">100 $AID/day</span> in Epoch 1.</div></div>
+          <div class="fact"><div class="fk">SESSION TYPES &amp; FEE</div><div class="fv"><b>Free session:</b> <span class="mono">3 hours</span> <small>at</small> <span class="mono">×1</span> <small>speed,</small> <span class="mono">0 BNB</span> <small>— 100 $AID/day rate in Epoch 1, accruing only during those 3 hours (≈12.5 $AID per full Free session at base tier).</small> <b>Paid session:</b> <span class="mono">12 hours</span> <small>at</small> <span class="mono">×3</span> <small>speed — 300 $AID/day rate in Epoch 1, ≈150 $AID per full Paid session at base tier — for</small> <span class="mono">0.003 BNB</span> <small>paid up front. It stacks with tier upgrades (Turbo ×2 + Paid ×3 = ×6; Quantum ×4 + Paid ×3 = ×12).</small> Paid fee split: <span class="mono">90% (0.0027 BNB)</span> to the treasury, <span class="mono">10% (0.0003 BNB)</span> to the referrer. <small>Free sessions charge no fee.</small></div></div>
+          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID + 0.003 BNB</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID + 0.003 BNB</span>. <small>Each upgrade charges both costs: the $AID is burned, and 0.003 BNB (simulated here) is deducted from your BNB wallet at upgrade time.</small></div></div>
           <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>On the real contract, a wallet must hold a</small> Binance Agent ID <small>to start a session.</small></div></div>
           <div class="fact"><div class="fk">CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
         </div>
@@ -820,6 +879,32 @@
             <span class="presale-status">● COMING SOON — NOT STARTED</span>
             <div class="presale-price">1 BNB = 210,000 <small>$AID</small></div>
             <p>Fixed presale price. Buyers will send BNB to the presale contract address and receive $AID instantly in the same purchase — no waiting for a later distribution.</p>
+            <div class="presale-get">
+              <div class="k">SMALLEST BUY — WHAT YOU GET</div>
+              <div class="big"><span class="from">0.01 BNB</span><span class="arrow" aria-hidden="true">→</span><span class="to">2,100 <small>$AID</small></span></div>
+              <div class="sub">That is the <b>minimum buy</b>: every <b>0.01 BNB = 2,100 $AID</b>. The rate never changes — just multiply: <b>0.1 BNB = 21,000 $AID</b>, <b>1 BNB = 210,000 $AID</b>.</div>
+            </div>
+            <div class="calc-box">
+              <div class="k">CALCULATOR — HOW MUCH $AID DO YOU GET?</div>
+              <div class="calc-row">
+                <label class="calc-input-wrap" aria-label="Amount in BNB">
+                  <input class="calc-input" id="presaleCalcInput" type="number" inputmode="decimal" min="0" step="0.01" value="0.01" aria-describedby="presaleCalcNote" />
+                  <span class="unit">BNB</span>
+                </label>
+              </div>
+              <div class="calc-presets" role="group" aria-label="Quick amounts">
+                <button type="button" class="calc-preset on" data-bnb="0.01">0.01 · MIN</button>
+                <button type="button" class="calc-preset" data-bnb="0.05">0.05</button>
+                <button type="button" class="calc-preset" data-bnb="0.1">0.10</button>
+                <button type="button" class="calc-preset" data-bnb="0.25">0.25</button>
+                <button type="button" class="calc-preset" data-bnb="0.5">0.50</button>
+                <button type="button" class="calc-preset" data-bnb="1">1.00 · MAX</button>
+              </div>
+              <div class="calc-out" aria-live="polite">
+                <div class="v"><span id="presaleCalcOut">2,100</span> <small>$AID</small></div>
+                <div class="note" id="presaleCalcNote">At 1 BNB = 210,000 $AID · minimum buy — you can start with just 0.01 BNB.</div>
+              </div>
+            </div>
             <div>
               <div class="presale-progress-head">
                 <span>RAISED <b>0 BNB</b> / 10 BNB HARD CAP</span>
@@ -842,11 +927,22 @@
               <div class="btn-note" id="presaleMsg" role="status" hidden>
                 <b>Not open yet.</b> The presale contract is not deployed, so there is no address to buy from.
                 Next step: wait for the contract address to appear above — then come back here, tap Buy $AID,
-                and send 0.01–1 BNB to that contract to get $AID instantly. Do not send BNB anywhere until then.
+                and send 0.01–1 BNB to that contract to get $AID instantly (0.01 BNB = 2,100 $AID). Do not send BNB anywhere until then.
               </div>
             </div>
           </div>
           <div class="panel">
+            <h3>What you get — per amount</h3>
+            <p>One fixed rate for everyone: <b>1 BNB = 210,000 $AID</b>, so <b>0.01 BNB = 2,100 $AID</b>. No tiers, no bonus tricks — the table is the whole deal.</p>
+            <p><b>Presale vs mining:</b> the presale pays <b>210,000 $AID per BNB</b> — over <b>3×</b> what Paid mining pays per BNB (≈50,000 $AID per BNB at Epoch 1 base tier). Mining earns slowly, session by session; the presale is the fast way in.</p>
+            <div class="get-table" role="table" aria-label="Presale amounts: BNB paid and $AID received">
+              <div class="get-row hl" role="row"><span class="b" role="cell">0.01 BNB</span><span class="a" role="cell">2,100 <small>$AID</small></span><span class="gtag-cell" role="cell"><span class="get-tag">MINIMUM</span></span></div>
+              <div class="get-row" role="row"><span class="b" role="cell">0.05 BNB</span><span class="a" role="cell">10,500 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
+              <div class="get-row" role="row"><span class="b" role="cell">0.10 BNB</span><span class="a" role="cell">21,000 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
+              <div class="get-row" role="row"><span class="b" role="cell">0.25 BNB</span><span class="a" role="cell">52,500 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
+              <div class="get-row" role="row"><span class="b" role="cell">0.50 BNB</span><span class="a" role="cell">105,000 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
+              <div class="get-row hl" role="row"><span class="b" role="cell">1.00 BNB</span><span class="a" role="cell">210,000 <small>$AID</small></span><span class="gtag-cell" role="cell"><span class="get-tag">MAX / WALLET</span></span></div>
+            </div>
             <h3>How the presale will work</h3>
             <ol>
               <li><b>Send BNB to the presale contract</b> — once the sale opens, you buy directly through the presale contract address published here.</li>
@@ -859,7 +955,7 @@
         </div>
         <div class="facts">
           <div class="fact"><div class="fk">STATUS</div><div class="fv">Coming soon <small>— not started, nothing sold yet</small></div></div>
-          <div class="fact"><div class="fk">PRICE</div><div class="fv"><span class="mono">1 BNB = 210,000 $AID</span></div></div>
+          <div class="fact"><div class="fk">PRICE</div><div class="fv"><span class="mono">1 BNB = 210,000 $AID</span> <small>— so</small> <span class="mono">0.01 BNB = 2,100 $AID</span> <small>and</small> <span class="mono">0.1 BNB = 21,000 $AID</span></div></div>
           <div class="fact"><div class="fk">ALLOCATION</div><div class="fv"><span class="mono">2,100,000 $AID</span> <small>— 10% of the 21,000,000 max supply</small></div></div>
           <div class="fact"><div class="fk">SOURCE OF ALLOCATION</div><div class="fv"><small>Taken from Epoch 1. Mining emission is reduced accordingly — mining keeps</small> <span class="mono">18,900,000 $AID</span> <small>of the 21,000,000 max supply. No extra tokens are created.</small></div></div>
           <div class="fact"><div class="fk">HARD CAP</div><div class="fv"><span class="mono">10 BNB</span></div></div>
@@ -884,7 +980,7 @@
             <div class="pnum">01</div>
             <div>
               <h3>Simulation live</h3>
-              <p>The full mining game runs in the browser with the real contract's numbers: 24h sessions, session fee, epochs, upgrades, and referral. Play it above to learn the economy before any real token exists.</p>
+              <p>The full mining game runs in the browser with the real contract's numbers: Free 3h / Paid 12h sessions, session fee, epochs, upgrades, and referral. Play it above to learn the economy before any real token exists.</p>
               <div class="when">NOW — LIVE</div>
             </div>
             <span class="pstatus live">LIVE</span>
@@ -939,9 +1035,9 @@
             <h3>How to play (simulation)</h3>
             <ol>
               <li><b>Connect your Agent ID</b> — one tap in the console creates a simulated identity. No wallet needed.</li>
-              <li><b>Start a machine</b> — each of your 2 slots runs a 24-hour session. The first session is free; later sessions cost 0.003 BNB from your simulated BNB wallet (top up anytime, it's play money).</li>
+              <li><b>Start a machine — pick Free or Paid</b> — each of your 2 slots runs one session per start. <b>Free</b> lasts <b>3 hours</b>, costs 0 BNB, and mines at ×1 speed (100 $AID/day rate in Epoch 1, accruing only during those 3 hours). <b>Paid</b> lasts <b>12 hours</b>, costs 0.003 BNB from your simulated BNB wallet charged instantly at start, and mines at ×3 speed (300 $AID/day rate in Epoch 1, ≈150 $AID per full Paid session at base tier). Paid stacks with upgrades: Turbo ×2 + Paid ×3 = ×6, Quantum ×4 + Paid ×3 = ×12. If your simulated BNB is below 0.003, the Paid start is refused — top up or start Free instead.</li>
               <li><b>Claim $AID</b> — machines accrue every second. Claim whenever you like, per slot or all at once.</li>
-              <li><b>Upgrade</b> — spend mined $AID: Turbo Miner ×2 for 500 $AID, Quantum Rig ×4 for 2,000 $AID. Unclaimed $AID on your machines counts too — tapping Upgrade claims it for you first.</li>
+              <li><b>Upgrade</b> — each upgrade costs mined $AID <b>plus</b> 0.003 BNB from your simulated BNB wallet: Turbo Miner ×2 = <b>500 $AID + 0.003 BNB</b>, Quantum Rig ×4 = <b>2,000 $AID + 0.003 BNB</b>. Unclaimed $AID on your machines counts too — tapping Upgrade claims it for you first. If your BNB balance is below 0.003, the upgrade is refused — tap Top Up first.</li>
               <li><b>Invite</b> — share your referral code and earn +10% of what invitees mine, minted on top, plus 10% of their session fees.</li>
             </ol>
             <p>Progress is saved in this browser only. The numbers match the real contract's design, so what you learn here carries over when mining opens.</p>
@@ -949,11 +1045,11 @@
           <div class="panel">
             <h3>Agent prompt — real contract</h3>
             <p>When the contract is deployed, an agent holding a Binance Agent ID can mine with a single instruction. The address stays TBD until mainnet deploy:</p>
-            <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain: call startMining() on the AgentID Miner contract at [CONTRACT ADDRESS — TBD, not deployed yet] — first session is free, every later 24h session costs exactly 0.003 BNB — then claim my $AID with claim() when each session ends, and repeat.</div>
+            <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain: call startMining() on the AgentID Miner contract at [CONTRACT ADDRESS — TBD, not deployed yet] — start a free 3h session at ×1 speed, or pay exactly 0.003 BNB up front for a paid 12h session at ×3 speed — then claim my $AID with claim() when each session ends, and repeat.</div>
             <div class="ref-link-row" style="margin-top:12px;">
               <button class="btn btn-gold btn-sm" id="copyPromptBtn">Copy Prompt</button>
             </div>
-            <p style="margin-top:14px;">Sessions last 24 hours, rewards follow the epoch rate (×1 / ×0.5 / ×0.25 / ×0.125), and upgrade costs are burned: Turbo ×2 = 500 $AID, Quantum ×4 = 2,000 $AID.</p>
+            <p style="margin-top:14px;">Sessions come in two types: Free (3 hours, 0 BNB, ×1 speed) and Paid (12 hours, 0.003 BNB up front, ×3 speed, stacking with tier multipliers). Rewards follow the epoch rate (×1 / ×0.5 / ×0.25 / ×0.125), and each upgrade costs $AID plus 0.003 BNB: Turbo ×2 = 500 $AID + 0.003 BNB, Quantum ×4 = 2,000 $AID + 0.003 BNB (the $AID part is burned).</p>
           </div>
         </div>
         <div class="faq">
@@ -963,7 +1059,7 @@
           </div>
           <div class="faq-item">
             <h3>Where do session fees go?</h3>
-            <p>On the real contract, each 0.003 BNB session fee (after the free first session) is split automatically: 90% (0.0027 BNB) goes to the project treasury wallet set at deployment, and 10% (0.0003 BNB) goes to the referrer of the miner, who claims it themselves. The miner contract has no owner who can redirect fees. In this simulation the same split is shown with play BNB.</p>
+            <p>Only Paid sessions have a fee — Free sessions cost 0 BNB and charge nothing. On the real contract design, each Paid session's 0.003 BNB fee, paid up front for a 12-hour session at ×3 speed, is split automatically: 90% (0.0027 BNB) goes to the project treasury wallet set at deployment, and 10% (0.0003 BNB) goes to the referrer of the miner, who claims it themselves. The miner contract has no owner who can redirect fees. In this simulation the same split is shown with play BNB.</p>
           </div>
           <div class="faq-item">
             <h3>What is an Agent ID?</h3>
@@ -986,12 +1082,12 @@
           <div class="wp-item">
             <div class="wn">01 · PROBLEM</div>
             <h3>Agents have no way to earn</h3>
-            <p>AI agents can hold wallets and call contracts, but almost nothing is built for them to do productively on-chain. At the same time, token launches usually hand supply to insiders first and let the public buy later. $AID flips that: aside from a single public presale of 2,100,000 $AID (10% of supply, taken from Epoch 1), the supply enters the world only through an agent identity doing the work of mining, one 24-hour session at a time, under rules anyone can read in the contract.</p>
+            <p>AI agents can hold wallets and call contracts, but almost nothing is built for them to do productively on-chain. At the same time, token launches usually hand supply to insiders first and let the public buy later. $AID flips that: aside from a single public presale of 2,100,000 $AID (10% of supply, taken from Epoch 1), the supply enters the world only through an agent identity doing the work of mining, one session at a time (Free 3h, Paid 12h), under rules anyone can read in the contract.</p>
           </div>
           <div class="wp-item">
             <div class="wn">02 · MINING ECONOMY</div>
             <h3>Work in sessions, earn by the second</h3>
-            <p>A miner starts a 24-hour session and accrues $AID every second at the current epoch rate. A Free Miner earns 864 $AID per day in Epoch 1. Two machine slots per miner keep the game balanced, and upgrades multiply output: Turbo Miner ×2 and Quantum Rig ×4. Sessions after the first cost 0.003 BNB, which keeps bots honest without locking anyone out — the first session is always free.</p>
+            <p>A miner starts a session — Free for 3 hours, or Paid for 12 hours — and accrues $AID every second at the current epoch rate. A Free Miner earns 100 $AID per day in Epoch 1. Two machine slots per miner keep the game balanced, and upgrades multiply output: Turbo Miner ×2 and Quantum Rig ×4. Every session is a choice: start Free at ×1 speed for 0 BNB (the first session is free on this path), or pay 0.003 BNB up front for a Paid session at ×3 speed — the paid multiplier stacks with tier upgrades, so a Quantum Rig on a Paid session runs at ×12. A full Free session (3h at the 100 $AID/day rate) earns ≈12.5 $AID at base tier in Epoch 1; a full Paid session (12h at the 300 $AID/day rate) earns ≈150 $AID. Free sessions keep mining open to anyone; the paid option only buys speed and time.</p>
           </div>
           <div class="wp-item">
             <div class="wn">03 · TOKENOMICS</div>
@@ -1019,7 +1115,7 @@
           is spent or moved. Progress is saved only in this browser (localStorage); clearing your browser
           data resets the game.
         </p>
-        <p class="mono" style="font-size:12px;">$AID · AGENT ID · SUPPLY 21,000,000 · 4 EPOCHS · 3 HALVINGS · SESSION FEE 0.003 BNB (SIM) · FIRST SESSION FREE · SIMULATION ONLY</p>
+        <p class="mono" style="font-size:12px;">$AID · AGENT ID · SUPPLY 21,000,000 · 4 EPOCHS · 3 HALVINGS · FREE SESSION 3H ×1 · 0 BNB · PAID SESSION 12H ×3 · 0.003 BNB (SIM) · SIMULATION ONLY</p>
       </footer>
     </div>
 
@@ -1034,10 +1130,13 @@
       var SUPPLY = 21000000;
       var EPOCH_SIZE = SUPPLY / 4;               // 5,250,000 per epoch
       var EPOCH_MULT = [1, 0.5, 0.25, 0.125];    // 3 halvings
-      var SESSION_MS = 24 * 60 * 60 * 1000;      // 24-hour sessions
-      var SESSION_FEE = 0.003;                  // BNB (simulated) per 24h session
+      var SESSION_MS = 12 * 60 * 60 * 1000;      // PAID session length: 12 hours
+      var FREE_SESSION_MS = 3 * 60 * 60 * 1000;  // FREE session length: 3 hours
+      var SESSION_FEE = 0.003;                  // BNB (simulated) per PAID 12h session, paid up front
+      var PAID_MULT = 3;                         // Paid session speed multiplier (stacks with tier)
+      var UPGRADE_BNB = 0.003;                   // BNB (simulated) charged on top of the $AID cost per upgrade
       var START_BNB = 0.01;                      // simulated starting BNB balance
-      var BASE_RATE = 0.01;                      // $AID / sec, Free Miner, Epoch 1
+      var BASE_RATE = 100 / 86400;               // $AID / sec, Free Miner, Epoch 1 — 100 $AID/day
       var BASE_HASH = 128;                       // MH/s shown per Free Miner
       var TIERS = [
         { name: "Free Miner",  mult: 1, cost: 0 },
@@ -1051,7 +1150,7 @@
         for (var i = 0; i < n; i++) s += chars[Math.floor(Math.random() * chars.length)];
         return s;
       }
-      function freshMachine() { return { tier: 0, running: false, endsAt: 0, accrued: 0, lastAt: 0 }; }
+      function freshMachine() { return { tier: 0, running: false, endsAt: 0, accrued: 0, lastAt: 0, sessionMult: 1, sessionType: null, sessionMs: 0 }; }
       function defaultState() {
         return {
           agentId: null,
@@ -1085,6 +1184,13 @@
       if (state.sessionsStarted == null) state.sessionsStarted = 0;
       if (state.feesPaid == null) state.feesPaid = 0;
       if (state.refBnbEarned == null) state.refBnbEarned = 0;
+      // saves from before Free/Paid session types existed get the new fields
+      if (state.machines) state.machines.forEach(function (mm) {
+        if (mm.sessionMult == null) mm.sessionMult = 1;
+        if (mm.sessionMult !== 1) mm.sessionMult = PAID_MULT; // older saves stored the previous Paid multiplier (×4)
+        if (mm.sessionType === undefined) mm.sessionType = mm.running ? "free" : null;
+        if (mm.sessionMs == null) mm.sessionMs = mm.sessionType === "paid" ? SESSION_MS : FREE_SESSION_MS;
+      });
 
       var lastTick = Date.now();
       function save() {
@@ -1097,8 +1203,11 @@
         return Math.min(3, Math.max(0, i));
       }
       function epochMult() { return EPOCH_MULT[epochIndex()]; }
-      function machineRate(m) { return BASE_RATE * TIERS[m.tier].mult * epochMult(); }
-      function machineHash(m) { return BASE_HASH * TIERS[m.tier].mult; }
+      function sessionMultOf(m) { return m.running ? (m.sessionMult === PAID_MULT ? PAID_MULT : 1) : 1; }
+      function sessionMsOf(m) { return m.sessionMs > 0 ? m.sessionMs : (m.sessionType === "paid" ? SESSION_MS : FREE_SESSION_MS); }
+      function sessionHoursLabel(m) { return m.sessionType === "paid" ? "12 hours" : "3 hours"; }
+      function machineRate(m) { return BASE_RATE * TIERS[m.tier].mult * epochMult() * sessionMultOf(m); }
+      function machineHash(m) { return BASE_HASH * TIERS[m.tier].mult * sessionMultOf(m); }
 
       /* ---------- formatting ---------- */
       var nf2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1152,19 +1261,25 @@
         var tier = TIERS[m.tier];
         var next = TIERS[m.tier + 1];
         var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
-        var progress = m.running ? Math.min(100, (1 - remaining / SESSION_MS) * 100) : (m.accrued > 0 ? 100 : 0);
+        var progress = m.running ? Math.min(100, (1 - remaining / sessionMsOf(m)) * 100) : (m.accrued > 0 ? 100 : 0);
         var status, statusCls;
-        if (m.running) { status = "MINING"; statusCls = "run"; }
+        var isPaid = m.sessionMult === PAID_MULT;
+        if (m.running && isPaid) { status = "MINING · PAID ×" + PAID_MULT; statusCls = "boost"; }
+        else if (m.running) { status = "MINING · FREE ×1"; statusCls = "run"; }
         else if (m.accrued > 0.0001) { status = "READY TO CLAIM"; statusCls = "done"; }
         else { status = "IDLE"; statusCls = "idle"; }
 
-        var feeNow = state.sessionsStarted === 0 ? 0 : SESSION_FEE;
+        var paidAfford = state.bnb >= SESSION_FEE;
         var startBtn = m.running
           ? '<button class="btn btn-line btn-sm" data-act="start" data-i="' + i + '">Running</button>'
-          : '<button class="btn btn-term btn-sm" data-act="start" data-i="' + i + '">Start Mining</button>';
+          : '<button class="btn btn-line btn-sm" data-act="start-free" data-i="' + i + '">Start Free · 3h · ×1</button>' +
+            '<button class="btn ' + (paidAfford ? "btn-paid" : "btn-paid low") + ' btn-sm" data-act="start-paid" data-i="' + i + '"' +
+            (paidAfford ? "" : ' aria-disabled="true" title="Not enough simulated BNB — top up first"') +
+            '>Start Paid · 12h · ×' + PAID_MULT + ' · ' + SESSION_FEE.toFixed(3) + ' BNB</button>';
         var spendable = state.balance + state.machines.reduce(function (s, mm) { return s + mm.accrued; }, 0);
+        var upgradeOk = next && spendable >= next.cost && state.bnb >= UPGRADE_BNB;
         var upgradeBtn = next
-          ? '<button class="btn ' + (spendable >= next.cost ? "btn-term" : "btn-line") + ' btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade</button>'
+          ? '<button class="btn ' + (upgradeOk ? "btn-term" : "btn-line") + ' btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade · ' + fmt0(next.cost) + ' $AID + ' + UPGRADE_BNB.toFixed(3) + ' BNB</button>'
           : '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Max Tier</button>';
 
         var accent = i === 0 ? "#f0b90b" : "#4ade80";
@@ -1207,12 +1322,16 @@
             '<div class="m-grid">' +
               '<span class="k">Nominal rate</span><span class="val">' + fmt0(machineHash(m)) + " MH/s</span>" +
               '<span class="k">Earns</span><span class="val">' + (machineRate(m) * 86400).toFixed(1) + " $AID/day</span>" +
-              '<span class="k">Time left</span><span class="val" id="left-' + i + '">' + (m.running ? clock(remaining) : "—") + "</span>" +
-              '<span class="k">Session</span><span class="val">24 hours</span>' +
-              '<span class="k">Session fee</span><span class="val">' +
-              (feeNow === 0 ? "FREE — first session" : SESSION_FEE.toFixed(3) + " BNB (sim)") + "</span>" +
+              '<span class="k">Time left</span><span class="val" id="left-' + i + '">' + (m.running ? clock(remaining) + " / " + sessionHoursLabel(m) : "—") + "</span>" +
+              '<span class="k">Session</span><span class="val">' + (m.running ? sessionHoursLabel(m) : "Free 3h / Paid 12h") + '</span>' +
+              '<span class="k">Session type</span><span class="val">' +
+              (m.running
+                ? (isPaid ? "PAID · ×" + PAID_MULT + " BOOST · 12h" : "FREE · ×1 · 3h")
+                : "Free 3h ×1 · 0 BNB / Paid 12h ×" + PAID_MULT + " · " + SESSION_FEE.toFixed(3) + " BNB") + "</span>" +
+              '<span class="k">Speed</span><span class="val">' +
+              ("Tier ×" + tier.mult + (m.running && isPaid ? " × Paid ×" + PAID_MULT + " = ×" + (tier.mult * PAID_MULT) : " · Paid would make ×" + (tier.mult * PAID_MULT))) + "</span>" +
               '<span class="k">Next upgrade</span><span class="val">' +
-              (next ? next.name + " · " + fmt0(next.cost) + " $AID" : "— max tier") + "</span>" +
+              (next ? next.name + " · " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB" : "— max tier") + "</span>" +
             "</div>" +
             '<div class="m-pending"><span id="pend-' + i + '">' + fmt(m.accrued) + '</span> <small>$AID unclaimed</small></div>' +
             '<div class="sbar"><div id="prog-' + i + '" style="width:' + progress.toFixed(1) + '%"></div></div>' +
@@ -1220,6 +1339,10 @@
               '<button class="btn btn-term btn-sm" data-act="claim" data-i="' + i + '">Claim</button>' +
               upgradeBtn +
             "</div>" +
+            (m.running
+              ? '<div class="session-note">Session: <b>' + (isPaid ? "PAID ×" + PAID_MULT + " · 12h" : "FREE ×1 · 3h") + "</b> — type, duration and speed are locked in for this whole session and stack with the tier above. Countdown shows time left of the full " + sessionHoursLabel(m) + '.</div>'
+              : '<div class="session-note"><b>Free</b> = 3 hours at ×1 speed, 0 BNB (100 $AID/day rate — a full Free session earns ≈12.5 $AID at base tier, Epoch 1). <b>Paid</b> = 12 hours at ×' + PAID_MULT + ' speed, ' + SESSION_FEE.toFixed(3) + ' BNB paid instantly at start (300 $AID/day rate — a full Paid session earns ≈150 $AID at base tier, Epoch 1).' +
+                (paidAfford ? "" : " <b>Not enough BNB for Paid — tap Top Up in the console, or start Free.</b>") + "</div>") +
           "</article>"
         );
       }
@@ -1256,8 +1379,8 @@
         el("balance").textContent = fmt(state.balance);
         el("totalEarned").textContent = fmt(state.totalEarned);
         el("bnbBalance").textContent = fmtBnb(state.bnb);
-        el("bnbSub").textContent = "Fee " + SESSION_FEE.toFixed(3) + " BNB/session · paid " + fmtBnb(state.feesPaid) +
-          " BNB so far · " + (state.sessionsStarted === 0 ? "first session still FREE" : "first session used");
+        el("bnbSub").textContent = "Paid session ×" + PAID_MULT + ": " + SESSION_FEE.toFixed(3) + " BNB · upgrade: +" + UPGRADE_BNB.toFixed(3) +
+          " BNB · spent " + fmtBnb(state.feesPaid) + " BNB so far · Free session: 0 BNB";
         var totalHash = state.machines.reduce(function (s, m) { return s + machineHash(m); }, 0);
         var perDay = state.machines.reduce(function (s, m) { return s + machineRate(m) * 86400; }, 0);
         el("hashPower").textContent = fmt0(totalHash);
@@ -1294,10 +1417,12 @@
         toast("Agent ID connected (simulation): " + state.agentId);
         save(); render();
       }
-      function startMachine(i) {
+      function startMachine(i, mode) {
         var m = state.machines[i];
+        var paid = mode === "paid";
         if (m.running) {
-          toast("Already mining — " + clock(Math.max(0, m.endsAt - Date.now())) + " left in this session.");
+          toast("Already mining — " + clock(Math.max(0, m.endsAt - Date.now())) + " left in this " +
+            (m.sessionType === "paid" ? "Paid 12h" : "Free 3h") + " session.");
           return;
         }
         if (!state.agentId) {
@@ -1305,11 +1430,11 @@
           document.getElementById("console").scrollIntoView({ behavior: "smooth" });
           return;
         }
-        var fee = state.sessionsStarted === 0 ? 0 : SESSION_FEE;
-        if (fee > 0 && state.bnb < fee) {
-          addLog("Slot " + (i + 1) + " can't start — not enough simulated BNB for the " +
-            SESSION_FEE.toFixed(3) + " BNB session fee. Top up in the console.");
-          toast("Not enough BNB — tap Top Up first.");
+        var fee = paid ? SESSION_FEE : 0;
+        if (paid && state.bnb < fee) {
+          addLog("Slot " + (i + 1) + " Paid session refused — not enough simulated BNB for the " +
+            SESSION_FEE.toFixed(3) + " BNB paid-session fee. Top up in the console, or start a Free 3h session instead.");
+          toast("Not enough BNB for Paid ×" + PAID_MULT + " — tap Top Up first, or start Free.");
           save(); render();
           return;
         }
@@ -1317,21 +1442,24 @@
         state.feesPaid += fee;
         state.sessionsStarted += 1;
         m.running = true;
-        m.endsAt = Date.now() + SESSION_MS;
+        m.sessionType = paid ? "paid" : "free";
+        m.sessionMult = paid ? PAID_MULT : 1;
+        m.sessionMs = paid ? SESSION_MS : FREE_SESSION_MS;
+        m.endsAt = Date.now() + m.sessionMs;
         m.lastAt = Date.now();
-        addLog("Slot " + (i + 1) + " started a 24h session — " + TIERS[m.tier].name +
-          (fee === 0
-            ? ". First session FREE — no fee charged."
-            : ". Session fee " + fmtBnb(fee) + " BNB paid (simulated)."));
-        toast(fee === 0
-          ? "Slot " + (i + 1) + " mining for 24 hours — first session free."
-          : "Slot " + (i + 1) + " mining — fee " + SESSION_FEE.toFixed(3) + " BNB (sim).");
+        addLog("Slot " + (i + 1) + " started a " + (paid ? "PAID" : "FREE") + " session — " + TIERS[m.tier].name +
+          (paid
+            ? ", 12 hours at ×" + PAID_MULT + " speed (tier ×" + TIERS[m.tier].mult + " × Paid ×" + PAID_MULT + " = ×" + (TIERS[m.tier].mult * PAID_MULT) + "). Paid instantly: " + fmtBnb(fee) + " BNB (simulated)."
+            : ", 3 hours at ×1 speed. No fee charged — free session."));
+        toast(paid
+          ? "Slot " + (i + 1) + " PAID mining ×" + PAID_MULT + " for 12h — " + SESSION_FEE.toFixed(3) + " BNB paid (sim)."
+          : "Slot " + (i + 1) + " FREE mining ×1 for 3 hours — no fee.");
         save(); render();
       }
       function claimMachine(i, silent) {
         var m = state.machines[i];
         if (m.accrued <= 0.0001) {
-          if (!silent) toast(m.running ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Mining first.");
+          if (!silent) toast(m.running ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Free or Start Paid first.");
           return 0;
         }
         var amt = m.accrued;
@@ -1361,14 +1489,24 @@
           addLog('Claimed <span class="g">' + fmt(folded) + " $AID</span> toward the upgrade.");
         }
         if (state.balance < next.cost) {
-          toast("Need " + fmt0(next.cost) + " $AID for " + next.name + " — you have " + fmt(state.balance) + ". Keep mining.");
+          toast("Need " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB for " + next.name + " — you have " + fmt(state.balance) + " $AID. Keep mining.");
+          save(); render();
+          return;
+        }
+        if (state.bnb < UPGRADE_BNB) {
+          addLog("Slot " + (i + 1) + " upgrade refused — " + next.name + " also needs " + UPGRADE_BNB.toFixed(3) +
+            " BNB (simulated) on top of " + fmt0(next.cost) + " $AID, and your BNB wallet is short. Top up first.");
+          toast("Need " + UPGRADE_BNB.toFixed(3) + " BNB for the upgrade — tap Top Up first.");
           save(); render();
           return;
         }
         state.balance -= next.cost;
+        state.bnb -= UPGRADE_BNB;
+        state.feesPaid += UPGRADE_BNB;
         m.tier += 1;
-        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — hash rate ×" + next.mult + ".");
-        toast("Slot " + (i + 1) + " upgraded to " + next.name + ".");
+        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — hash rate ×" + next.mult +
+          ". Paid " + fmt0(next.cost) + " $AID (burned) + " + fmtBnb(UPGRADE_BNB) + " BNB (simulated).");
+        toast("Slot " + (i + 1) + " upgraded to " + next.name + " — " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB paid.");
         save(); render();
       }
 
@@ -1377,7 +1515,9 @@
         if (!btn) return;
         var i = parseInt(btn.getAttribute("data-i"), 10);
         var act = btn.getAttribute("data-act");
-        if (act === "start") startMachine(i);
+        if (act === "start") startMachine(i, "free");
+        else if (act === "start-free") startMachine(i, "free");
+        else if (act === "start-paid") startMachine(i, "paid");
         else if (act === "claim") { claimMachine(i); save(); render(); }
         else if (act === "upgrade") upgradeMachine(i);
       });
@@ -1392,8 +1532,7 @@
       el("heroStart").addEventListener("click", function () {
         document.getElementById("console").scrollIntoView({ behavior: "smooth" });
         if (!state.agentId) connectAgent();
-        if (!state.machines[0].running) startMachine(0);
-        if (!state.machines[1].running) startMachine(1);
+        toast("Pick per slot in the console: Free 3h ×1, or Paid 12h ×" + PAID_MULT + " for 0.003 BNB (sim).");
       });
       el("claimAllBtn").addEventListener("click", function () {
         var total = 0;
@@ -1403,7 +1542,7 @@
           toast("Claimed " + fmt(total) + " $AID (simulation).");
         } else {
           var anyRunning = state.machines.some(function (m) { return m.running; });
-          toast(anyRunning ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Mining first.");
+          toast(anyRunning ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Free or Start Paid first.");
         }
         save(); render();
       });
@@ -1443,6 +1582,54 @@
         toast("Referral bonus +" + fmt(bonus) + " $AID + " + fmtBnb(feeBonus) + " BNB (simulation).");
         save(); render();
       });
+      /* ---------- presale calculator: 1 BNB = 210,000 $AID ---------- */
+      (function () {
+        var RATE = 210000, MIN_BNB = 0.01, MAX_BNB = 1;
+        var input = el("presaleCalcInput"), out = el("presaleCalcOut"), note = el("presaleCalcNote");
+        if (!input || !out || !note) return;
+        var presets = Array.prototype.slice.call(document.querySelectorAll(".calc-preset"));
+        function update(fromPreset) {
+          var raw = String(input.value).replace(",", ".");
+          var bnb = parseFloat(raw);
+          presets.forEach(function (b) {
+            b.classList.toggle("on", isFinite(bnb) && Math.abs(parseFloat(b.getAttribute("data-bnb")) - bnb) < 1e-9);
+          });
+          if (!isFinite(bnb) || bnb <= 0) {
+            out.textContent = "0";
+            note.textContent = "Type an amount — for example 0.01 BNB gets you 2,100 $AID.";
+            note.className = "note";
+            return;
+          }
+          var aid = bnb * RATE;
+          out.textContent = fmtInt(aid);
+          if (bnb < MIN_BNB) {
+            note.textContent = "Below the minimum — the smallest buy is 0.01 BNB = 2,100 $AID.";
+            note.className = "note err";
+          } else if (bnb > MAX_BNB) {
+            note.textContent = "Over the max per wallet — capped at 1 BNB = 210,000 $AID per wallet. This amount would need more than one wallet.";
+            note.className = "note warn";
+          } else if (Math.abs(bnb - MIN_BNB) < 1e-9) {
+            note.textContent = "At 1 BNB = 210,000 $AID · minimum buy — you can start with just 0.01 BNB.";
+            note.className = "note";
+          } else if (Math.abs(bnb - MAX_BNB) < 1e-9) {
+            note.textContent = "At 1 BNB = 210,000 $AID · maximum per wallet — the biggest single-wallet buy.";
+            note.className = "note";
+          } else {
+            note.textContent = "At 1 BNB = 210,000 $AID · " + bnb.toLocaleString("en-US", { maximumFractionDigits: 6 }) + " BNB × 210,000 = " + fmtInt(aid) + " $AID, delivered instantly on purchase.";
+            note.className = "note";
+          }
+        }
+        input.addEventListener("input", function () { update(false); });
+        input.addEventListener("change", function () { update(false); });
+        presets.forEach(function (b) {
+          b.addEventListener("click", function () {
+            input.value = b.getAttribute("data-bnb");
+            update(true);
+            input.focus();
+          });
+        });
+        update(false);
+      })();
       el("buyAidBtn").addEventListener("click", function () {
         var msg = el("presaleMsg");
         if (msg) {
@@ -1571,11 +1758,11 @@
           setText("twatt-" + i, fmtInt(t.watt) + " W");
           setText("trpm-" + i, fmtInt(t.rpm) + " RPM");
           setText("pend-" + i, fmt(m.accrued));
-          setText("left-" + i, m.running ? clock(Math.max(0, m.endsAt - Date.now())) : "—");
+          setText("left-" + i, m.running ? clock(Math.max(0, m.endsAt - Date.now())) + " / " + sessionHoursLabel(m) : "—");
           var prog = document.getElementById("prog-" + i);
           if (prog) {
             var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
-            prog.style.width = (m.running ? Math.min(100, (1 - remaining / SESSION_MS) * 100) : (m.accrued > 0 ? 100 : 0)).toFixed(1) + "%";
+            prog.style.width = (m.running ? Math.min(100, (1 - remaining / sessionMsOf(m)) * 100) : (m.accrued > 0 ? 100 : 0)).toFixed(1) + "%";
           }
           var eq = document.getElementById("eq-" + i);
           if (eq && !REDUCED) {
@@ -1611,7 +1798,7 @@
 
         state.machines.forEach(function (m, i) {
           if (!m.running) return;
-          var from = Math.max(m.lastAt || now, m.endsAt - SESSION_MS);
+          var from = Math.max(m.lastAt || now, m.endsAt - sessionMsOf(m));
           var to = Math.min(now, m.endsAt);
           if (to > from) {
             var gain = machineRate(m) * ((to - from) / 1000);
@@ -1622,7 +1809,7 @@
           m.lastAt = to;
           if (now >= m.endsAt) {
             m.running = false;
-            addLog("Slot " + (i + 1) + ' session complete — <span class="g">' + fmt(m.accrued) + " $AID</span> ready to claim.");
+            addLog("Slot " + (i + 1) + " " + (m.sessionType === "paid" ? "Paid 12h" : "Free 3h") + ' session complete — <span class="g">' + fmt(m.accrued) + " $AID</span> ready to claim.");
             changed = true;
             sessionEnded = true;
           }
@@ -1641,7 +1828,7 @@
       }
 
       /* migrate older saves: a running machine resumes accrual from its
-         last saved timestamp, so time away still counts (24h cap applies) */
+         last saved timestamp, so time away still counts (session-length cap applies) */
       state.machines.forEach(function (m) {
         if (m.lastAt == null) m.lastAt = Date.now();
       });
