@@ -1,0 +1,1643 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Agent ID Miner — Mine $AID (Simulation)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #eceee9;
+        --bg-soft: #e2e6de;
+        --ink: #131711;
+        --ink-soft: #4c554a;
+        --line: #c9cec2;
+        --card: #f7f8f4;
+        --console: #0c100c;
+        --console-2: #12160f;
+        --console-line: #2a3324;
+        --term: #e9f2df;
+        --term-dim: #93a487;
+        --gold: #f0b90b;
+        --gold-deep: #c99400;
+        --green: #4ade80;
+        --red: #f87171;
+        --radius: 14px;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0c0a;
+          --bg-soft: #10130f;
+          --ink: #eef2e6;
+          --ink-soft: #a7b39c;
+          --line: #262c22;
+          --card: #12160f;
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Archivo", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+      svg { display: block; max-width: 100%; height: auto; }
+      .hero > *, .console-top > *, .machines > *, .epochs > *, .steps > *, .ref-grid > *, .rig-nums > * { min-width: 0; }
+
+      /* ---------- simulation banner ---------- */
+      .sim-banner {
+        background: var(--gold);
+        color: #191304;
+        text-align: center;
+        padding: 10px 16px;
+        font-weight: 700;
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .sim-banner b {
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.14em;
+        font-size: 12px;
+        background: #191304;
+        color: var(--gold);
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 8px;
+        white-space: nowrap;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 40px;
+        align-items: center;
+        padding: 56px 0 44px;
+      }
+      .hero h1 {
+        font-size: clamp(38px, 6vw, 64px);
+        line-height: 0.98;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin: 0 0 18px;
+      }
+      .hero h1 .tk { color: var(--gold-deep); }
+      @media (prefers-color-scheme: dark) { .hero h1 .tk { color: var(--gold); } }
+      .hero p.lede { font-size: 18px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 26px; max-width: 46ch; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+      .btn {
+        appearance: none; border: 0; cursor: pointer;
+        font-family: inherit; font-weight: 800; font-size: 15px;
+        padding: 13px 22px; border-radius: 10px; min-height: 44px;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: transform 0.08s ease, background 0.15s ease, opacity 0.15s;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn-gold { background: var(--gold); color: #191304; }
+      .btn-gold:hover { background: #ffc81f; }
+      .btn-ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+      .btn-ghost:hover { border-color: var(--ink-soft); }
+      .btn:focus-visible, .nav-inner a:focus-visible, .reset-link:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
+      .btn-note { font-size: 13.5px; line-height: 1.6; color: var(--term); background: var(--console-2); border: 1px solid rgba(240,185,11,0.45); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+      .btn-note[hidden] { display: none; }
+      .btn-sm { padding: 9px 14px; font-size: 13.5px; border-radius: 8px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+      .chip {
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 600;
+        border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 12px; color: var(--ink-soft);
+        background: var(--card);
+      }
+      .chip b { color: var(--ink); }
+
+      /* rig illustration */
+      .rig-card {
+        background: var(--console);
+        border: 1px solid var(--console-line);
+        border-radius: 18px;
+        padding: 22px;
+        color: var(--term);
+        box-shadow: 0 24px 50px -24px rgba(10, 14, 8, 0.55);
+      }
+      .rig-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+      .rig-head .mono { font-size: 12px; letter-spacing: 0.12em; color: var(--term-dim); }
+      .live-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--green); font-weight: 700; letter-spacing: 0.08em; }
+      .live-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.6s ease-in-out infinite; }
+      .live-dot.idle { color: var(--term-dim); }
+      .live-dot.idle::before { background: #5c6b52; animation: none; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+      .bot { transform-box: fill-box; transform-origin: center; animation: bob 3.4s ease-in-out infinite; }
+      .mbot { transform-box: fill-box; transform-origin: center; animation: bob 3.6s ease-in-out infinite; }
+      .machine.active .mbot { animation-duration: 1.15s; }
+      @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+      .eye { transform-box: fill-box; transform-origin: center; animation: eyeblink 4.4s ease-in-out infinite; }
+      @keyframes eyeblink { 0%, 91%, 100% { transform: scaleY(1); } 94.5% { transform: scaleY(0.1); } }
+      .led { animation: blink 1.9s steps(2, start) infinite; }
+      .led.d2 { animation-delay: 0.6s; } .led.d3 { animation-delay: 1.2s; }
+      @keyframes blink { 50% { opacity: 0.15; } }
+      .rig-nums { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 16px; }
+      .rig-nums div { background: var(--console-2); border: 1px solid var(--console-line); border-radius: 10px; padding: 10px 12px; }
+      .rig-nums .v { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 17px; color: #fff; white-space: nowrap; }
+      .rig-nums .k { font-size: 11px; color: var(--term-dim); letter-spacing: 0.06em; margin-top: 2px; }
+
+      /* ---------- live telemetry (rig monitoring) ---------- */
+      .chart-wrap { margin-top: 16px; background: var(--console-2); border: 1px solid var(--console-line); border-radius: 10px; padding: 10px 12px 6px; }
+      .chart-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 14px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--term-dim); margin-bottom: 4px; }
+      .chart-head b { color: var(--term); font-weight: 700; }
+      #hashChart { width: 100%; height: 54px; display: block; }
+      .m-tele { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 2px; }
+      .m-tele > div { background: #050705; border: 1px solid var(--console-line); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+      .m-tele .k { font-size: 10px; letter-spacing: 0.08em; color: var(--term-dim); font-weight: 700; }
+      .m-tele .val { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--term); margin-top: 2px; white-space: nowrap; }
+      .m-tele .val.t-warn { color: var(--gold); }
+      .m-tele .val.t-hot { color: var(--red); }
+      .eq { display: flex; align-items: flex-end; gap: 2px; height: 26px; margin: 10px 0 2px; }
+      .eq span { flex: 1; background: linear-gradient(to top, #22703a, var(--green)); border-radius: 1px; min-height: 2px; height: 8%; }
+      .machine:not(.active) .eq span { background: #2a3324; }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: #5c6b52; display: inline-block; margin-right: 6px; vertical-align: 1px; }
+      .machine.active .dot { background: var(--green); animation: pulse 1.4s ease-in-out infinite; }
+      @media (max-width: 480px) { .m-tele { grid-template-columns: 1fr 1fr; } }
+
+      /* ---------- console ---------- */
+      section { padding: 30px 0; }
+      .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+      .sec-head h2 { font-size: 28px; font-weight: 900; letter-spacing: -0.01em; margin: 0; }
+      .sec-head p { margin: 0; color: var(--ink-soft); font-size: 14.5px; }
+      .console {
+        background: var(--console);
+        border: 1px solid var(--console-line);
+        border-radius: 20px;
+        color: var(--term);
+        padding: 24px;
+        box-shadow: 0 24px 50px -24px rgba(10, 14, 8, 0.55);
+      }
+      .console-top { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+      .stat {
+        background: var(--console-2); border: 1px solid var(--console-line);
+        border-radius: var(--radius); padding: 16px;
+      }
+      .stat .k { font-size: 11.5px; letter-spacing: 0.1em; color: var(--term-dim); font-weight: 700; }
+      .stat .v { font-family: "JetBrains Mono", monospace; font-size: 26px; font-weight: 800; color: #fff; margin-top: 6px; word-break: break-all; }
+      .stat .v small { font-size: 14px; color: var(--gold); font-weight: 700; }
+      .stat .sub { font-size: 12.5px; color: var(--term-dim); margin-top: 4px; }
+      .agent-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+      .agent-badge {
+        font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+        background: rgba(240, 185, 11, 0.14); color: var(--gold);
+        border: 1px solid rgba(240, 185, 11, 0.45); border-radius: 8px; padding: 5px 10px;
+      }
+      .btn-term { background: var(--gold); color: #191304; }
+      .btn-term:hover { background: #ffc81f; }
+      .btn-line { background: transparent; color: var(--term); border: 1.5px solid var(--console-line); }
+      .btn-line:hover { border-color: var(--term-dim); }
+
+      .supply { margin: 4px 0 20px; }
+      .supply .row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--term-dim); font-family: "JetBrains Mono", monospace; margin-bottom: 7px; flex-wrap: wrap; gap: 6px; }
+      .supply .row b { color: var(--term); }
+      .bar { height: 12px; background: #050705; border: 1px solid var(--console-line); border-radius: 999px; overflow: hidden; }
+      .bar > div { height: 100%; background: var(--gold); border-radius: 999px; transition: width 0.6s ease; }
+
+      .machines { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .machine {
+        background: var(--console-2); border: 1px solid var(--console-line);
+        border-radius: var(--radius); padding: 18px;
+      }
+      .machine.active { border-color: rgba(74, 222, 128, 0.55); }
+      .machine .m-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+      .machine h3 { margin: 0; font-size: 18px; font-weight: 800; color: #fff; }
+      .machine .slot { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--term-dim); }
+      .status { font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+      .status.run { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+      .status.idle { background: rgba(147, 164, 135, 0.15); color: var(--term-dim); }
+      .status.done { background: rgba(240, 185, 11, 0.16); color: var(--gold); }
+      .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 14px 0; font-size: 13px; }
+      .m-grid .k { color: var(--term-dim); }
+      .m-grid .val { font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--term); text-align: right; }
+      .m-pending { font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 800; color: var(--gold); }
+      .m-pending small { font-size: 13px; }
+      .sbar { height: 8px; background: #050705; border-radius: 999px; overflow: hidden; margin: 10px 0 4px; }
+      .sbar > div { height: 100%; background: var(--green); transition: width 0.5s linear; }
+      .m-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .log {
+        margin-top: 14px; background: #050705; border: 1px solid var(--console-line);
+        border-radius: var(--radius); padding: 14px 16px;
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; line-height: 1.9; color: var(--term-dim);
+        max-height: 190px; overflow: hidden;
+      }
+      .log .t { color: #5c6b52; margin-right: 8px; }
+      .log .g { color: var(--gold); }
+      .console-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+      .reset-link { background: none; border: 0; color: var(--term-dim); font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: underline; font-family: inherit; padding: 12px 8px; min-height: 44px; }
+      .reset-link:hover { color: var(--red); }
+
+      /* ---------- epochs ---------- */
+      .epochs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .epoch {
+        background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px;
+      }
+      .epoch.now { border-color: var(--gold-deep); box-shadow: inset 0 0 0 1px var(--gold-deep); }
+      .epoch .n { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.12em; color: var(--ink-soft); font-weight: 700; }
+      .epoch .r { font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 800; margin: 8px 0 4px; }
+      .epoch .d { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+      .epoch .tag { display: inline-block; margin-top: 10px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; padding: 3px 9px; border-radius: 999px; background: var(--gold); color: #191304; }
+      .epoch .tag.future { background: var(--bg-soft); color: var(--ink-soft); }
+
+      /* ---------- referral ---------- */
+      .ref-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 14px; }
+      .panel { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 22px; }
+      .panel h3 { margin: 0 0 8px; font-size: 19px; font-weight: 800; }
+      .panel p { margin: 0 0 14px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.6; }
+      .ref-link-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .ref-input {
+        flex: 1 1 220px; font-family: "JetBrains Mono", monospace; font-size: 14px;
+        padding: 11px 13px; border-radius: 9px; border: 1.5px solid var(--line);
+        background: var(--bg); color: var(--ink); min-width: 0;
+      }
+      .ref-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .ref-stats div { background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
+      .ref-stats .v { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 18px; }
+      .ref-stats .k { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; }
+      .pct { font-size: 52px; font-weight: 900; line-height: 1; color: var(--gold-deep); }
+      @media (prefers-color-scheme: dark) { .pct { color: var(--gold); } }
+
+      /* ---------- steps ---------- */
+      .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .step { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px; }
+      .step .num { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 13px; color: var(--gold-deep); letter-spacing: 0.1em; }
+      .step h3 { margin: 8px 0 6px; font-size: 17px; font-weight: 800; }
+      .step p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+
+      /* ---------- top nav ---------- */
+      .topnav {
+        position: sticky; top: 0; z-index: 40;
+        background: var(--bg);
+        border-bottom: 1.5px solid var(--line);
+      }
+      .nav-inner { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; }
+      .nav-inner a {
+        color: var(--ink-soft); text-decoration: none; font-weight: 700; font-size: 14px;
+        padding: 10px 12px; border-radius: 8px; min-height: 40px; display: inline-flex; align-items: center;
+      }
+      .nav-inner a:hover { color: var(--ink); background: var(--bg-soft); }
+      .nav-inner a.nav-cta { background: var(--gold); color: #191304; margin-left: auto; }
+      .nav-inner a.nav-cta:hover { background: #ffc81f; color: #191304; }
+      :root { --nav-h: 118px; }
+      section[id] { scroll-margin-top: calc(var(--nav-h) + 14px); }
+
+      /* ---------- $AID emblem ---------- */
+      .nav-inner a.nav-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; font-size: 15px; color: var(--ink); }
+      .nav-inner a.nav-brand:hover { background: transparent; color: var(--ink); }
+      .nav-inner a.nav-brand svg { width: 27px; height: 27px; }
+      .hero-emblem { margin-bottom: 20px; }
+      .hero-emblem svg { width: 92px; height: 92px; filter: drop-shadow(0 10px 18px rgba(160, 118, 0, 0.35)); }
+      .token-head { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
+      .token-head svg { width: 104px; height: 104px; flex: none; }
+      .th-sym { font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 800; line-height: 1.1; }
+      .th-name { color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; margin-top: 3px; }
+      @media (max-width: 480px) {
+        .hero-emblem svg { width: 76px; height: 76px; }
+        .token-head svg { width: 84px; height: 84px; }
+      }
+
+      /* ---------- token facts ---------- */
+      .facts { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+      .fact { display: grid; grid-template-columns: 240px 1fr; gap: 8px 20px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+      .fact:last-child { border-bottom: 0; }
+      .fact .fk { font-size: 12px; letter-spacing: 0.09em; font-weight: 800; color: var(--ink-soft); padding-top: 3px; }
+      .fact .fv { font-size: 15px; line-height: 1.55; }
+      .fact .fv .mono { font-weight: 700; }
+      .fact .fv small { color: var(--ink-soft); }
+      .tbd {
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700;
+        background: rgba(240, 185, 11, 0.16); color: var(--gold-deep);
+        border: 1px solid rgba(240, 185, 11, 0.5); border-radius: 6px; padding: 2px 8px; white-space: nowrap;
+      }
+      @media (prefers-color-scheme: dark) { .tbd { color: var(--gold); } }
+      @media (max-width: 640px) { .fact { grid-template-columns: 1fr; gap: 2px; } }
+
+      /* ---------- presale ---------- */
+      .presale-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 14px; margin-bottom: 14px; }
+      @media (max-width: 860px) { .presale-grid { grid-template-columns: 1fr; } }
+      .presale-card {
+        background: var(--console); border: 1px solid var(--console-line); border-radius: var(--radius);
+        padding: 22px; color: var(--term);
+      }
+      .presale-status {
+        display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 800;
+        letter-spacing: 0.08em; padding: 5px 10px; border-radius: 999px;
+        background: rgba(240, 185, 11, 0.16); color: var(--gold); border: 1px solid rgba(240, 185, 11, 0.45);
+      }
+      .presale-price { font-family: "JetBrains Mono", monospace; font-size: clamp(26px, 4vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; margin: 16px 0 6px; }
+      .presale-price small { font-size: 15px; color: var(--gold); font-weight: 700; }
+      .presale-card p { margin: 0 0 16px; color: var(--term-dim); font-size: 14.5px; line-height: 1.6; }
+      .presale-progress-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--term-dim); margin-bottom: 7px; }
+      .presale-progress-head b { color: var(--term); }
+      .presale-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+      .presale-stats div { background: var(--console-2); border: 1px solid var(--console-line); border-radius: 10px; padding: 11px 12px; min-width: 0; }
+      .presale-stats .v { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 16px; color: #fff; white-space: nowrap; }
+      .presale-stats .k { font-size: 11px; color: var(--term-dim); letter-spacing: 0.06em; margin-top: 3px; }
+      @media (max-width: 480px) { .presale-stats { grid-template-columns: 1fr; } .presale-stats .v { white-space: normal; } }
+      .presale-address {
+        margin-top: 14px; background: #050705; border: 1px dashed var(--console-line); border-radius: 10px;
+        padding: 13px 14px; font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.6; color: var(--term-dim);
+      }
+      .presale-address b { color: var(--gold); }
+      .presale-note { margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--term-dim); }
+      .presale-note b { color: var(--term); }
+
+      /* ---------- roadmap ---------- */
+      .road { display: grid; gap: 12px; }
+      .phase {
+        display: grid; grid-template-columns: 46px 1fr auto; gap: 16px; align-items: start;
+        background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px 20px;
+      }
+      .phase .pnum {
+        font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 15px;
+        width: 46px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        background: var(--bg-soft); color: var(--ink-soft);
+      }
+      .phase.live .pnum { background: var(--gold); color: #191304; }
+      .phase h3 { margin: 2px 0 5px; font-size: 17px; font-weight: 800; }
+      .phase p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+      .phase .when { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+      .pstatus { font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+      .pstatus.live { background: var(--gold); color: #191304; }
+      .pstatus.next { background: var(--bg-soft); color: var(--ink-soft); }
+      @media (max-width: 640px) {
+        .phase { grid-template-columns: 46px 1fr; }
+        .phase .pstatus { grid-column: 2; justify-self: start; }
+      }
+
+      /* ---------- docs ---------- */
+      .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 860px) { .docs-grid { grid-template-columns: 1fr; } }
+      .panel ol { margin: 0 0 6px; padding-left: 20px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.7; }
+      .panel ol b { color: var(--ink); }
+      .prompt-box {
+        background: var(--console); border: 1px solid var(--console-line); border-radius: 10px;
+        padding: 14px 16px; color: var(--term);
+        font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.7; word-break: break-word;
+      }
+      .faq { display: grid; gap: 12px; margin-top: 14px; }
+      .faq-item { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+      .faq-item h3 { margin: 0 0 6px; font-size: 16px; font-weight: 800; }
+      .faq-item p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.6; }
+
+      /* ---------- whitepaper ---------- */
+      .wp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 860px) { .wp-grid { grid-template-columns: 1fr; } }
+      .wp-item { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
+      .wp-item .wn { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 12.5px; color: var(--gold-deep); letter-spacing: 0.1em; }
+      @media (prefers-color-scheme: dark) { .wp-item .wn { color: var(--gold); } }
+      .wp-item h3 { margin: 7px 0 7px; font-size: 17px; font-weight: 800; }
+      .wp-item p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.6; }
+
+      footer { border-top: 1.5px solid var(--line); margin-top: 26px; padding: 26px 0 calc(40px + env(safe-area-inset-bottom, 0px)); }
+      footer p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; margin: 0 0 8px; max-width: 78ch; }
+      footer b { color: var(--ink); }
+      .toast {
+        position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
+        background: #131711; color: #f2f5ec; padding: 11px 18px; border-radius: 10px;
+        font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease;
+        border: 1px solid var(--console-line); z-index: 50; max-width: calc(100vw - 32px); text-align: center;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      @media (max-width: 860px) {
+        .hero { grid-template-columns: 1fr; padding-top: 38px; }
+        .console-top { grid-template-columns: 1fr; }
+        .machines { grid-template-columns: 1fr; }
+        .epochs { grid-template-columns: 1fr 1fr; }
+        .ref-grid { grid-template-columns: 1fr; }
+        .steps { grid-template-columns: 1fr; }
+        .rig-nums { grid-template-columns: 1fr 1fr 1fr; }
+      }
+      @media (max-width: 480px) {
+        .epochs { grid-template-columns: 1fr; }
+        .ref-stats { grid-template-columns: 1fr 1fr; }
+        .rig-nums .v { font-size: 10.5px; letter-spacing: -0.03em; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bot, .mbot, .eye, .led, .live-dot::before, .machine.active .dot { animation: none; }
+        html { scroll-behavior: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- $AID token emblem: a gold Agent ID badge, reused via <use> -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="aidGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffd94d" />
+          <stop offset="1" stop-color="#eda900" />
+        </linearGradient>
+        <linearGradient id="aidGreen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a9f4c2" />
+          <stop offset="1" stop-color="#3ecf6e" />
+        </linearGradient>
+        <symbol id="aid-emblem" viewBox="0 0 120 120">
+          <rect x="15" y="9" width="90" height="102" rx="15" fill="url(#aidGold)" stroke="#a87e00" stroke-width="2.5" />
+          <rect x="22.5" y="16.5" width="75" height="87" rx="10" fill="none" stroke="rgba(25,19,4,0.28)" stroke-width="1.6" />
+          <rect x="46" y="21" width="28" height="6.5" rx="3.25" fill="#191304" opacity="0.5" />
+          <use href="#robotFaceGold" transform="translate(60,50) scale(1.05)"></use>
+          <text x="60" y="99" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="20" letter-spacing="2.5" fill="#191304">AID</text>
+        </symbol>
+        <!-- $AID logo robot face: octagonal gold head, ring-dot glowing eyes,
+             hex nose with triangle, grille mouth, ear panels, circuit lines.
+             Drawn once here and reused via <use> everywhere on the page. -->
+        <g id="robotFaceGold">
+          <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
+          <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
+          <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
+          <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
+          <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGold)" stroke="#191304" stroke-width="2.2" stroke-linejoin="round" />
+          <path d="M-7.5,-16.9 H7.5" stroke="#fff6cf" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
+          <g stroke="#191304" stroke-width="1.1" opacity="0.45" fill="none">
+            <path d="M-13,-12.5 H-6" />
+            <path d="M6,-12.5 H13" />
+            <path d="M0,-15.5 V-11" />
+          </g>
+          <g fill="#191304" opacity="0.45">
+            <circle cx="-4.2" cy="-12.5" r="1.15" />
+            <circle cx="4.2" cy="-12.5" r="1.15" />
+            <circle cx="0" cy="-9.4" r="1.15" />
+          </g>
+          <g class="eye">
+            <circle cx="-8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
+            <g fill="#ffd94d">
+              <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
+            </g>
+            <circle cx="-8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
+            <circle cx="-8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
+          </g>
+          <g class="eye">
+            <circle cx="8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
+            <g fill="#ffd94d">
+              <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
+            </g>
+            <circle cx="8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
+            <circle cx="8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
+          </g>
+          <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#cf9203" stroke="#191304" stroke-width="1.4" stroke-linejoin="round" />
+          <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#191304" opacity="0.75" />
+          <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#221806" stroke="#191304" stroke-width="1.5" />
+          <g stroke="#ffd94d" stroke-width="1.5" stroke-linecap="round">
+            <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
+            <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
+            <line x1="0" y1="13.1" x2="0" y2="16.4" />
+            <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
+            <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
+          </g>
+        </g>
+        <g id="robotFaceGreen">
+          <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
+          <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
+          <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
+          <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
+          <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGreen)" stroke="#07240f" stroke-width="2.2" stroke-linejoin="round" />
+          <path d="M-7.5,-16.9 H7.5" stroke="#eafff1" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
+          <g stroke="#07240f" stroke-width="1.1" opacity="0.45" fill="none">
+            <path d="M-13,-12.5 H-6" />
+            <path d="M6,-12.5 H13" />
+            <path d="M0,-15.5 V-11" />
+          </g>
+          <g fill="#07240f" opacity="0.45">
+            <circle cx="-4.2" cy="-12.5" r="1.15" />
+            <circle cx="4.2" cy="-12.5" r="1.15" />
+            <circle cx="0" cy="-9.4" r="1.15" />
+          </g>
+          <g class="eye">
+            <circle cx="-8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+            <g fill="#c9ffdc">
+              <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
+            </g>
+            <circle cx="-8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
+            <circle cx="-8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
+          </g>
+          <g class="eye">
+            <circle cx="8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+            <g fill="#c9ffdc">
+              <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
+            </g>
+            <circle cx="8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
+            <circle cx="8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
+          </g>
+          <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#2fb457" stroke="#07240f" stroke-width="1.4" stroke-linejoin="round" />
+          <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#07240f" opacity="0.75" />
+          <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+          <g stroke="#a9f4c2" stroke-width="1.5" stroke-linecap="round">
+            <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
+            <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
+            <line x1="0" y1="13.1" x2="0" y2="16.4" />
+            <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
+            <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
+          </g>
+        </g>
+      </defs>
+    </svg>
+
+    <div class="sim-banner" role="note">
+      <span><b>SIMULATION</b>$AID is a simulated token. No real crypto, no real value, nothing is on-chain.</span>
+    </div>
+
+    <header class="topnav">
+      <div class="wrap nav-inner">
+        <a href="#console" class="nav-brand" aria-label="Agent ID Miner — $AID home"><svg aria-hidden="true"><use href="#aid-emblem"></use></svg><span>$AID</span></a>
+        <a href="#console">Miner</a>
+        <a href="#token">Token</a>
+        <a href="#presale">Presale</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#docs">Docs</a>
+        <a href="#whitepaper">Whitepaper</a>
+        <a href="#referral" class="nav-cta">Referral</a>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div>
+          <div class="hero-emblem">
+            <svg role="img" aria-label="$AID token emblem — a gold Agent ID badge with a gold robot face and the letters AID"><use href="#aid-emblem"></use></svg>
+          </div>
+          <h1>Your Agent ID mines <span class="tk">$AID</span> for you.</h1>
+          <p class="lede">
+            Connect a simulated Agent ID, start the Free Miner, and earn $AID around the clock.
+            Two machine slots, a hard cap of 21 million, sessions at 0.003 BNB (simulated) with
+            the first one free, and a 10% referral bonus minted on top.
+          </p>
+          <div class="cta-row">
+            <button class="btn btn-gold" id="heroStart">Start Mining</button>
+            <a class="btn btn-ghost" href="#presale" style="text-decoration:none;">Buy $AID</a>
+          </div>
+          <div class="chips">
+            <span class="chip">Supply <b>21,000,000 $AID</b></span>
+            <span class="chip"><b>4</b> epochs · <b>3</b> halvings</span>
+            <span class="chip"><b>24h</b> sessions · fee <b>0.003 BNB</b> (sim)</span>
+            <span class="chip">First session <b>FREE</b></span>
+            <span class="chip">Referral <b>+10%</b></span>
+          </div>
+        </div>
+        <div class="rig-card" aria-hidden="true">
+          <div class="rig-head">
+            <span class="mono">RIG-01 · AGENT FLEET</span>
+            <span class="live-dot idle mono" id="rigStatus">IDLE</span>
+          </div>
+          <svg viewBox="0 0 420 190" width="100%" role="img" aria-label="Live mining rig monitoring panel">
+            <rect x="6" y="10" width="408" height="170" rx="12" fill="#12160f" stroke="#2a3324" />
+            <!-- unit 1 -->
+            <g font-family="JetBrains Mono, monospace">
+              <g transform="translate(58,57)">
+                <g class="bot" id="heroBot1">
+                  <line x1="0" y1="-33" x2="0" y2="-40" stroke="#f0b90b" stroke-width="2.5" stroke-linecap="round" />
+                  <circle class="led" cx="0" cy="-43" r="3.4" fill="#f0b90b" />
+                  <rect x="-27" y="-33" width="54" height="66" rx="8" fill="#050705" stroke="#f0b90b" stroke-width="2.5" />
+                  <text x="0" y="-22.5" text-anchor="middle" fill="#f0b90b" font-size="7.5" font-weight="700" letter-spacing="1.4">AGENT ID</text>
+                  <use href="#robotFaceGold" transform="translate(0,-5) scale(0.62)"></use>
+                  <text x="0" y="20.5" text-anchor="middle" fill="#e9f2df" font-size="8.5" font-weight="700">ID-001</text>
+                  <g fill="#f0b90b" opacity="0.85">
+                    <rect x="-19" y="25" width="3" height="6" /><rect x="-14.5" y="25" width="1.5" height="6" /><rect x="-11.5" y="25" width="2.5" height="6" /><rect x="-7.5" y="25" width="1.5" height="6" /><rect x="-4.5" y="25" width="3" height="6" /><rect x="0" y="25" width="1.5" height="6" /><rect x="3" y="25" width="2.5" height="6" /><rect x="7" y="25" width="1.5" height="6" /><rect x="10" y="25" width="3" height="6" /><rect x="14.5" y="25" width="1.5" height="6" /><rect x="17.5" y="25" width="2.5" height="6" />
+                  </g>
+                </g>
+              </g>
+              <text x="104" y="38" fill="#93a487" font-size="10" letter-spacing="1.5" id="heroName1">UNIT-01 · FREE MINER</text>
+              <text x="104" y="66" fill="#ffffff" font-size="16" font-weight="800"><tspan id="heroHash1">0.0</tspan><tspan font-size="10" fill="#93a487" font-weight="600"> MH/s</tspan></text>
+              <text x="218" y="66" fill="#e9f2df" font-size="13" font-weight="700"><tspan id="heroTemp1">31.0</tspan><tspan font-size="10" fill="#93a487"> °C</tspan></text>
+              <text x="300" y="66" fill="#e9f2df" font-size="13" font-weight="700"><tspan id="heroWatt1">12</tspan><tspan font-size="10" fill="#93a487"> W</tspan></text>
+              <text x="104" y="86" fill="#93a487" font-size="10">FAN <tspan id="heroRpm1" fill="#e9f2df">0</tspan> RPM</text>
+              <circle class="led" cx="392" cy="34" r="4.5" fill="#4ade80" />
+              <circle class="led d2" cx="374" cy="34" r="4.5" fill="#f0b90b" />
+            </g>
+            <line x1="20" y1="100" x2="400" y2="100" stroke="#2a3324" stroke-width="2" />
+            <!-- unit 2 -->
+            <g font-family="JetBrains Mono, monospace">
+              <g transform="translate(58,141)">
+                <g class="bot" id="heroBot2">
+                  <line x1="0" y1="-33" x2="0" y2="-40" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" />
+                  <circle class="led d2" cx="0" cy="-43" r="3.4" fill="#4ade80" />
+                  <rect x="-27" y="-33" width="54" height="66" rx="8" fill="#050705" stroke="#4ade80" stroke-width="2.5" />
+                  <text x="0" y="-22.5" text-anchor="middle" fill="#4ade80" font-size="7.5" font-weight="700" letter-spacing="1.4">AGENT ID</text>
+                  <use href="#robotFaceGreen" transform="translate(0,-5) scale(0.62)"></use>
+                  <text x="0" y="20.5" text-anchor="middle" fill="#e9f2df" font-size="8.5" font-weight="700">ID-002</text>
+                  <g fill="#4ade80" opacity="0.85">
+                    <rect x="-19" y="25" width="3" height="6" /><rect x="-14.5" y="25" width="1.5" height="6" /><rect x="-11.5" y="25" width="2.5" height="6" /><rect x="-7.5" y="25" width="1.5" height="6" /><rect x="-4.5" y="25" width="3" height="6" /><rect x="0" y="25" width="1.5" height="6" /><rect x="3" y="25" width="2.5" height="6" /><rect x="7" y="25" width="1.5" height="6" /><rect x="10" y="25" width="3" height="6" /><rect x="14.5" y="25" width="1.5" height="6" /><rect x="17.5" y="25" width="2.5" height="6" />
+                  </g>
+                </g>
+              </g>
+              <text x="104" y="122" fill="#93a487" font-size="10" letter-spacing="1.5" id="heroName2">UNIT-02 · FREE MINER</text>
+              <text x="104" y="150" fill="#ffffff" font-size="16" font-weight="800"><tspan id="heroHash2">0.0</tspan><tspan font-size="10" fill="#93a487" font-weight="600"> MH/s</tspan></text>
+              <text x="218" y="150" fill="#e9f2df" font-size="13" font-weight="700"><tspan id="heroTemp2">31.0</tspan><tspan font-size="10" fill="#93a487"> °C</tspan></text>
+              <text x="300" y="150" fill="#e9f2df" font-size="13" font-weight="700"><tspan id="heroWatt2">12</tspan><tspan font-size="10" fill="#93a487"> W</tspan></text>
+              <text x="104" y="170" fill="#93a487" font-size="10">FAN <tspan id="heroRpm2" fill="#e9f2df">0</tspan> RPM</text>
+              <circle class="led d3" cx="392" cy="118" r="4.5" fill="#4ade80" />
+              <circle class="led" cx="374" cy="118" r="4.5" fill="#f0b90b" />
+            </g>
+          </svg>
+          <div class="chart-wrap">
+            <div class="chart-head">
+              <span>NETWORK HASHRATE · LIVE</span>
+              <span>PWR <b id="rigPower">24 W</b> · AVG TEMP <b id="rigTemp">31.0°C</b></span>
+            </div>
+            <canvas id="hashChart" height="54"></canvas>
+          </div>
+          <div class="rig-nums">
+            <div><div class="v" id="rigMined">0</div><div class="k">$AID MINED (SIM)</div></div>
+            <div><div class="v" id="rigEpoch">1 / 4</div><div class="k">EPOCH</div></div>
+            <div><div class="v" id="rigRate">×1.00</div><div class="k">REWARD RATE</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONSOLE -->
+      <section id="console">
+        <div class="sec-head">
+          <h2>Mining console</h2>
+          <p>Sessions run in real time. Fees are simulated BNB — the first session is free, then 0.003 BNB per session.</p>
+        </div>
+        <div class="console">
+          <div class="console-top">
+            <div class="stat">
+              <div class="k">YOUR AGENT ID</div>
+              <div class="agent-line">
+                <span class="agent-badge" id="agentBadge">not connected</span>
+                <button class="btn btn-term btn-sm" id="connectBtn">Connect</button>
+              </div>
+              <div class="sub">Simulated identity — no wallet, no keys, nothing leaves this page.</div>
+            </div>
+            <div class="stat">
+              <div class="k">BALANCE</div>
+              <div class="v"><span id="balance">0.00</span> <small>$AID</small></div>
+              <div class="sub">Total earned: <span class="mono" id="totalEarned">0.00</span> $AID</div>
+            </div>
+            <div class="stat">
+              <div class="k">BNB WALLET (SIM)</div>
+              <div class="v"><span id="bnbBalance">0.01000</span> <small>BNB</small></div>
+              <div class="sub" id="bnbSub">Fee 0.003 BNB/session · first session FREE</div>
+              <div class="agent-line">
+                <button class="btn btn-line btn-sm" id="topupBtn">Top Up</button>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="k">YOUR HASH POWER</div>
+              <div class="v"><span id="hashPower">0</span> <small>MH/s</small></div>
+              <div class="sub">≈ <span class="mono" id="perDay">0</span> $AID / day at current epoch</div>
+            </div>
+          </div>
+
+          <div class="supply">
+            <div class="row">
+              <span>NETWORK MINED (SIM) <b id="globalMined">0</b> / 21,000,000 $AID</span>
+              <span id="halvingNote">Epoch 1 · next halving at 5,250,000</span>
+            </div>
+            <div class="bar"><div id="supplyBar" style="width:0%"></div></div>
+          </div>
+
+          <div class="machines" id="machines"></div>
+
+          <div class="log" id="log" aria-live="polite"></div>
+
+          <div class="console-foot">
+            <button class="btn btn-term btn-sm" id="claimAllBtn">Claim All</button>
+            <button class="reset-link" id="resetBtn">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EPOCHS -->
+      <section>
+        <div class="sec-head">
+          <h2>Four epochs. Three halvings.</h2>
+          <p>Rewards halve each epoch — early miners earn the most.</p>
+        </div>
+        <div class="epochs" id="epochs"></div>
+      </section>
+
+      <!-- REFERRAL -->
+      <section id="referral">
+        <div class="sec-head">
+          <h2>Referral: +10%, minted on top</h2>
+          <p>10% of invitee mining, minted on top — plus 10% of the session fees they pay.</p>
+        </div>
+        <div class="ref-grid">
+          <div class="panel">
+            <h3>Your referral code</h3>
+            <p>Share your code anywhere. When an invitee mines $AID with it, you earn 10% of their mined amount as a bonus, plus 10% of the session fees they pay (in simulated BNB), and they keep 100% of theirs. Their link looks like this: <span class="mono" id="refLinkText">agent-id-miner/r/…</span></p>
+            <div class="ref-link-row">
+              <input class="ref-input" id="refLink" readonly value="" aria-label="Your referral code" />
+              <button class="btn btn-gold btn-sm" id="copyRefBtn">Copy Code</button>
+            </div>
+            <p style="margin-top:14px;">Demo the mechanic inside this simulation:</p>
+            <button class="btn btn-ghost btn-sm" id="simInviteeBtn">Test Referral</button>
+          </div>
+          <div class="panel">
+            <div class="pct">10%</div>
+            <p>of everything your invitees mine — paid to you, minted fresh — plus 10% of their session fees in simulated BNB.</p>
+            <div class="ref-stats">
+              <div><div class="v" id="refEvents">0</div><div class="k">Invitee claims (sim)</div></div>
+              <div><div class="v" id="refMined">0</div><div class="k">$AID mined by invitees</div></div>
+              <div><div class="v" id="refEarned">0</div><div class="k">Your bonus $AID</div></div>
+              <div><div class="v" id="refBnb">0.00000</div><div class="k">Your fee bonus BNB (sim)</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW -->
+      <section>
+        <div class="sec-head">
+          <h2>How it works</h2>
+          <p>Three steps. No real wallet, no real gas — fees are simulated BNB.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="num">STEP 1</div>
+            <h3>Connect Agent ID</h3>
+            <p>One tap creates your simulated Agent ID. It is the only identity the miner needs.</p>
+          </div>
+          <div class="step">
+            <div class="num">STEP 2</div>
+            <h3>Start the Free Miner</h3>
+            <p>Each machine runs a 24-hour session and earns $AID every second. Your first session is free; after that, each session costs 0.003 BNB (simulated). Upgrade machines with mined $AID to go faster.</p>
+          </div>
+          <div class="step">
+            <div class="num">STEP 3</div>
+            <h3>Claim &amp; invite</h3>
+            <p>Claim your $AID whenever you like. Invite friends and earn 10% of what they mine — minted on top, never deducted.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOKEN -->
+      <section id="token">
+        <div class="sec-head">
+          <h2>Token — $AID</h2>
+          <p>The facts of the real contract design. The contract is written and tested, but not deployed yet — the address is TBD.</p>
+        </div>
+        <div class="token-head">
+          <svg role="img" aria-label="$AID token emblem — a gold Agent ID badge with a gold robot face and the letters AID"><use href="#aid-emblem"></use></svg>
+          <div>
+            <div class="th-sym">$AID</div>
+            <div class="th-name">Agent ID — the token every Agent miner earns. Its emblem is the badge itself: an agent identity you can hold.</div>
+          </div>
+        </div>
+        <div class="facts">
+          <div class="fact"><div class="fk">TOKEN NAME</div><div class="fv">Agent ID</div></div>
+          <div class="fact"><div class="fk">SYMBOL</div><div class="fv"><span class="mono">$AID</span></div></div>
+          <div class="fact"><div class="fk">CHAIN</div><div class="fv">BNB Chain <small>· chain ID</small> <span class="mono">56</span></div></div>
+          <div class="fact"><div class="fk">DECIMALS</div><div class="fv"><span class="mono">18</span></div></div>
+          <div class="fact"><div class="fk">MAX SUPPLY</div><div class="fv"><span class="mono">21,000,000 $AID</span> <small>— hard cap. Split:</small> <span class="mono">2,100,000 $AID (10%)</span> <small>presale allocation,</small> <span class="mono">18,900,000 $AID (90%)</span> <small>minted through mining</small></div></div>
+          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000 $AID</span> presale + <span class="mono">3,150,000 $AID</span> mining. Epochs 2–4: <span class="mono">5,250,000 $AID</span> mining each. Total mining emission: <span class="mono">18,900,000 $AID</span>. Reward rate per epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span> (3 halvings). A Free Miner earns <span class="mono">864 $AID/day</span> in Epoch 1.</div></div>
+          <div class="fact"><div class="fk">SESSION FEE</div><div class="fv"><span class="mono">0.003 BNB</span> per 24-hour session — <small>first session free</small>. Split: <span class="mono">90% (0.0027 BNB)</span> to the treasury, <span class="mono">10% (0.0003 BNB)</span> to the referrer.</div></div>
+          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID</span>. <small>Upgrade fees are burned.</small></div></div>
+          <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>On the real contract, a wallet must hold a</small> Binance Agent ID <small>to start a session.</small></div></div>
+          <div class="fact"><div class="fk">CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
+        </div>
+      </section>
+
+      <!-- PRESALE -->
+      <section id="presale">
+        <div class="sec-head">
+          <h2>Presale — $AID</h2>
+          <p>Coming soon. The presale contract is not deployed yet — no sale is open and no BNB should be sent anywhere.</p>
+        </div>
+        <div class="presale-grid">
+          <div class="presale-card">
+            <span class="presale-status">● COMING SOON — NOT STARTED</span>
+            <div class="presale-price">1 BNB = 210,000 <small>$AID</small></div>
+            <p>Fixed presale price. Buyers will send BNB to the presale contract address and receive $AID instantly in the same purchase — no waiting for a later distribution.</p>
+            <div>
+              <div class="presale-progress-head">
+                <span>RAISED <b>0 BNB</b> / 10 BNB HARD CAP</span>
+                <span>0%</span>
+              </div>
+              <div class="bar"><div style="width:0%"></div></div>
+            </div>
+            <div class="presale-stats">
+              <div><div class="v">0</div><div class="k">$AID SOLD</div></div>
+              <div><div class="v">2,100,000</div><div class="k">$AID ALLOCATED</div></div>
+              <div><div class="v">Not started</div><div class="k">STATUS</div></div>
+            </div>
+            <div class="presale-address">
+              PRESALE CONTRACT ADDRESS<br />
+              <b>TBD — NOT DEPLOYED YET</b>
+            </div>
+            <div class="presale-note"><b>Do not send BNB yet.</b> The only official presale address will be the one published here after the contract is deployed. Any $AID presale address shared elsewhere before then is not official.</div>
+            <div style="margin-top:16px;">
+              <button class="btn btn-gold" id="buyAidBtn" aria-describedby="presaleMsg">Buy $AID</button>
+              <div class="btn-note" id="presaleMsg" role="status" hidden>
+                <b>Not open yet.</b> The presale contract is not deployed, so there is no address to buy from.
+                Next step: wait for the contract address to appear above — then come back here, tap Buy $AID,
+                and send 0.01–1 BNB to that contract to get $AID instantly. Do not send BNB anywhere until then.
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>How the presale will work</h3>
+            <ol>
+              <li><b>Send BNB to the presale contract</b> — once the sale opens, you buy directly through the presale contract address published here.</li>
+              <li><b>Receive $AID instantly</b> — $AID is delivered to your wallet in the same purchase, at 1 BNB = 210,000 $AID.</li>
+              <li><b>No Agent ID needed</b> — anyone can buy in the presale. Holding a Binance Agent ID is only required to mine, not to buy.</li>
+              <li><b>BNB stays in the contract</b> — raised BNB stays in the presale contract during the sale and is withdrawn to the treasury only after the sale ends.</li>
+            </ol>
+            <p>The sale runs for 7 days or until sold out, whichever comes first. When the full 10 BNB hard cap is reached, all 2,100,000 $AID in the allocation are sold.</p>
+          </div>
+        </div>
+        <div class="facts">
+          <div class="fact"><div class="fk">STATUS</div><div class="fv">Coming soon <small>— not started, nothing sold yet</small></div></div>
+          <div class="fact"><div class="fk">PRICE</div><div class="fv"><span class="mono">1 BNB = 210,000 $AID</span></div></div>
+          <div class="fact"><div class="fk">ALLOCATION</div><div class="fv"><span class="mono">2,100,000 $AID</span> <small>— 10% of the 21,000,000 max supply</small></div></div>
+          <div class="fact"><div class="fk">SOURCE OF ALLOCATION</div><div class="fv"><small>Taken from Epoch 1. Mining emission is reduced accordingly — mining keeps</small> <span class="mono">18,900,000 $AID</span> <small>of the 21,000,000 max supply. No extra tokens are created.</small></div></div>
+          <div class="fact"><div class="fk">HARD CAP</div><div class="fv"><span class="mono">10 BNB</span></div></div>
+          <div class="fact"><div class="fk">MINIMUM BUY</div><div class="fv"><span class="mono">0.01 BNB</span> <small>= 2,100 $AID</small></div></div>
+          <div class="fact"><div class="fk">MAXIMUM PER WALLET</div><div class="fv"><span class="mono">1 BNB</span> <small>= 210,000 $AID per wallet</small></div></div>
+          <div class="fact"><div class="fk">DURATION</div><div class="fv"><span class="mono">7 days</span> <small>— or until sold out, whichever comes first. Start date: TBD</small></div></div>
+          <div class="fact"><div class="fk">DELIVERY</div><div class="fv"><small>$AID is delivered to the buyer</small> <span class="mono">instantly</span> <small>on purchase</small></div></div>
+          <div class="fact"><div class="fk">ELIGIBILITY</div><div class="fv"><small>Open to anyone —</small> <span class="mono">no Agent ID needed</span> <small>to buy the presale</small></div></div>
+          <div class="fact"><div class="fk">WHERE THE BNB GOES</div><div class="fv"><small>Buyers send BNB to the presale contract address. The BNB</small> <span class="mono">stays in the contract</span> <small>during the sale and is withdrawn to the treasury after the sale ends.</small></div></div>
+          <div class="fact"><div class="fk">PRESALE CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
+        </div>
+      </section>
+
+      <!-- ROADMAP -->
+      <section id="roadmap">
+        <div class="sec-head">
+          <h2>Roadmap</h2>
+          <p>Where $AID stands and what comes next. Dates are marked TBD until they are decided — nothing here is a launch promise.</p>
+        </div>
+        <div class="road">
+          <div class="phase live">
+            <div class="pnum">01</div>
+            <div>
+              <h3>Simulation live</h3>
+              <p>The full mining game runs in the browser with the real contract's numbers: 24h sessions, session fee, epochs, upgrades, and referral. Play it above to learn the economy before any real token exists.</p>
+              <div class="when">NOW — LIVE</div>
+            </div>
+            <span class="pstatus live">LIVE</span>
+          </div>
+          <div class="phase">
+            <div class="pnum">02</div>
+            <div>
+              <h3>Testnet deploy</h3>
+              <p>Deploy the $AID token and the miner contract to BNB Chain testnet and run the full flow end to end: start a session, accrue, claim, upgrade, refer.</p>
+              <div class="when">DATE: TBD</div>
+            </div>
+            <span class="pstatus next">UPCOMING</span>
+          </div>
+          <div class="phase">
+            <div class="pnum">03</div>
+            <div>
+              <h3>Mainnet deploy + verification</h3>
+              <p>Deploy to BNB Chain mainnet (chain ID 56) and verify both contracts so anyone can read the source. The contract addresses will be published here, replacing the TBD above.</p>
+              <div class="when">DATE: TBD</div>
+            </div>
+            <span class="pstatus next">UPCOMING</span>
+          </div>
+          <div class="phase">
+            <div class="pnum">04</div>
+            <div>
+              <h3>Mining opens</h3>
+              <p>Real mining starts: hold a Binance Agent ID, start a session on the live contract, and earn real $AID. This page switches from simulation to the deployed contracts.</p>
+              <div class="when">DATE: TBD</div>
+            </div>
+            <span class="pstatus next">UPCOMING</span>
+          </div>
+          <div class="phase">
+            <div class="pnum">05</div>
+            <div>
+              <h3>Liquidity &amp; listing</h3>
+              <p>Add liquidity so $AID can trade, and pursue listings. No venue or date is decided yet — anything announced elsewhere before it appears here is not official.</p>
+              <div class="when">DATE: TBD</div>
+            </div>
+            <span class="pstatus next">UPCOMING</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCS -->
+      <section id="docs">
+        <div class="sec-head">
+          <h2>Docs</h2>
+          <p>How to play, how agents will mine on the real contract, and straight answers to common questions.</p>
+        </div>
+        <div class="docs-grid">
+          <div class="panel">
+            <h3>How to play (simulation)</h3>
+            <ol>
+              <li><b>Connect your Agent ID</b> — one tap in the console creates a simulated identity. No wallet needed.</li>
+              <li><b>Start a machine</b> — each of your 2 slots runs a 24-hour session. The first session is free; later sessions cost 0.003 BNB from your simulated BNB wallet (top up anytime, it's play money).</li>
+              <li><b>Claim $AID</b> — machines accrue every second. Claim whenever you like, per slot or all at once.</li>
+              <li><b>Upgrade</b> — spend mined $AID: Turbo Miner ×2 for 500 $AID, Quantum Rig ×4 for 2,000 $AID.</li>
+              <li><b>Invite</b> — share your referral code and earn +10% of what invitees mine, minted on top, plus 10% of their session fees.</li>
+            </ol>
+            <p>Progress is saved in this browser only. The numbers match the real contract's design, so what you learn here carries over when mining opens.</p>
+          </div>
+          <div class="panel">
+            <h3>Agent prompt — real contract</h3>
+            <p>When the contract is deployed, an agent holding a Binance Agent ID can mine with a single instruction. The address stays TBD until mainnet deploy:</p>
+            <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain: call startMining() on the AgentID Miner contract at [CONTRACT ADDRESS — TBD, not deployed yet] — first session is free, every later 24h session costs exactly 0.003 BNB — then claim my $AID with claim() when each session ends, and repeat.</div>
+            <div class="ref-link-row" style="margin-top:12px;">
+              <button class="btn btn-gold btn-sm" id="copyPromptBtn">Copy Prompt</button>
+            </div>
+            <p style="margin-top:14px;">Sessions last 24 hours, rewards follow the epoch rate (×1 / ×0.5 / ×0.25 / ×0.125), and upgrade costs are burned: Turbo ×2 = 500 $AID, Quantum ×4 = 2,000 $AID.</p>
+          </div>
+        </div>
+        <div class="faq">
+          <div class="faq-item">
+            <h3>Is $AID real yet?</h3>
+            <p>No. The contracts are written and tested, but they are not deployed — there is no contract address, no liquidity, and no market price. Everything on this page today is a simulation with play balances. If someone offers you "$AID" now, it is not this token.</p>
+          </div>
+          <div class="faq-item">
+            <h3>Where do session fees go?</h3>
+            <p>On the real contract, each 0.003 BNB session fee (after the free first session) is split automatically: 90% (0.0027 BNB) goes to the project treasury wallet set at deployment, and 10% (0.0003 BNB) goes to the referrer of the miner, who claims it themselves. The miner contract has no owner who can redirect fees. In this simulation the same split is shown with play BNB.</p>
+          </div>
+          <div class="faq-item">
+            <h3>What is an Agent ID?</h3>
+            <p>A Binance Agent ID is an on-chain identity for AI agents on BNB Chain. The real AgentIdMiner contract checks that your wallet holds one before it lets you start a mining session — your agent's identity is its mining license. In the simulation, the "Connect" button in the console stands in for that check.</p>
+          </div>
+          <div class="faq-item">
+            <h3>Can I lose my progress?</h3>
+            <p>In the simulation, yes — progress lives only in this browser's local storage, so clearing site data resets the game. Once mining is live on-chain, balances and sessions will live in the contracts instead.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- WHITEPAPER -->
+      <section id="whitepaper">
+        <div class="sec-head">
+          <h2>Whitepaper — summary</h2>
+          <p>The short version, on one page. A full PDF whitepaper is not published yet — this summary is the current canonical text.</p>
+        </div>
+        <div class="wp-grid">
+          <div class="wp-item">
+            <div class="wn">01 · PROBLEM</div>
+            <h3>Agents have no way to earn</h3>
+            <p>AI agents can hold wallets and call contracts, but almost nothing is built for them to do productively on-chain. At the same time, token launches usually hand supply to insiders first and let the public buy later. $AID flips that: aside from a single public presale of 2,100,000 $AID (10% of supply, taken from Epoch 1), the supply enters the world only through an agent identity doing the work of mining, one 24-hour session at a time, under rules anyone can read in the contract.</p>
+          </div>
+          <div class="wp-item">
+            <div class="wn">02 · MINING ECONOMY</div>
+            <h3>Work in sessions, earn by the second</h3>
+            <p>A miner starts a 24-hour session and accrues $AID every second at the current epoch rate. A Free Miner earns 864 $AID per day in Epoch 1. Two machine slots per miner keep the game balanced, and upgrades multiply output: Turbo Miner ×2 and Quantum Rig ×4. Sessions after the first cost 0.003 BNB, which keeps bots honest without locking anyone out — the first session is always free.</p>
+          </div>
+          <div class="wp-item">
+            <div class="wn">03 · TOKENOMICS</div>
+            <h3>21 million — 10% presale, 90% mined</h3>
+            <p>Max supply is 21,000,000 $AID (18 decimals, BNB Chain). Of that, 2,100,000 $AID (10%) is the presale allocation, taken from Epoch 1; the remaining 18,900,000 $AID (90%) is emitted through mining. Mining emission runs in 4 epochs: Epoch 1 contributes 3,150,000 $AID of mining on top of the presale allocation, and Epochs 2–4 contribute 5,250,000 $AID each. The reward rate halves each epoch: ×1, ×0.5, ×0.25, ×0.125. There is no team or investor allocation in the design — beyond the public presale, $AID is created only when a miner's session accrues it. Upgrade payments (500 / 2,000 $AID) are burned, so active play permanently shrinks the circulating supply.</p>
+          </div>
+          <div class="wp-item">
+            <div class="wn">04 · REFERRAL</div>
+            <h3>+10%, minted on top</h3>
+            <p>Growth is rewarded without taxing the new miner. When an invitee mines, the referrer receives a bonus equal to 10% of the mined amount, minted on top — the invitee keeps 100%. Referrers also receive 10% of the session fees their invitees pay, claimable by the referrer directly from the contract, while the other 90% of each fee goes to the treasury.</p>
+          </div>
+          <div class="wp-item" style="grid-column: 1 / -1;">
+            <div class="wn">05 · RISKS</div>
+            <h3>Read this before you mine</h3>
+            <p>$AID is not deployed yet: there is no contract address, no liquidity, and no price, and the launch timeline is undecided (all dates TBD). When it does launch, mined $AID will have value only if a market forms — it may trade at or near zero, and session fees paid in BNB are spent whether or not the token gains value. Smart contracts can contain bugs even after testing; no audit is claimed at this stage. The simulation on this page uses play balances and carries no value at all. Never pay anyone for "$AID" before the official contract address is published here.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          <b>Simulation notice:</b> Agent ID Miner is a game simulation. $AID is a simulated token with
+          <b>no real value</b> — it is not cryptocurrency, it is not on any blockchain, and it cannot be bought,
+          sold, or withdrawn. Session fees are charged in simulated BNB inside the game only — no real BNB
+          is spent or moved. Progress is saved only in this browser (localStorage); clearing your browser
+          data resets the game.
+        </p>
+        <p class="mono" style="font-size:12px;">$AID · AGENT ID · SUPPLY 21,000,000 · 4 EPOCHS · 3 HALVINGS · SESSION FEE 0.003 BNB (SIM) · FIRST SESSION FREE · SIMULATION ONLY</p>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+      "use strict";
+      /* ================= Agent ID Miner — simulation engine =================
+         Everything here is a game. $AID has no real value and nothing is
+         on-chain. State lives only in this browser's localStorage.        */
+
+      var SUPPLY = 21000000;
+      var EPOCH_SIZE = SUPPLY / 4;               // 5,250,000 per epoch
+      var EPOCH_MULT = [1, 0.5, 0.25, 0.125];    // 3 halvings
+      var SESSION_MS = 24 * 60 * 60 * 1000;      // 24-hour sessions
+      var SESSION_FEE = 0.003;                  // BNB (simulated) per 24h session
+      var START_BNB = 0.01;                      // simulated starting BNB balance
+      var BASE_RATE = 0.01;                      // $AID / sec, Free Miner, Epoch 1
+      var BASE_HASH = 128;                       // MH/s shown per Free Miner
+      var TIERS = [
+        { name: "Free Miner",  mult: 1, cost: 0 },
+        { name: "Turbo Miner", mult: 2, cost: 500 },
+        { name: "Quantum Rig", mult: 4, cost: 2000 }
+      ];
+      var STORE_KEY = "agent-id-miner-v1";
+
+      function rndCode(n) {
+        var chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+        for (var i = 0; i < n; i++) s += chars[Math.floor(Math.random() * chars.length)];
+        return s;
+      }
+      function freshMachine() { return { tier: 0, running: false, endsAt: 0, accrued: 0, lastAt: 0 }; }
+      function defaultState() {
+        return {
+          agentId: null,
+          balance: 0,
+          totalEarned: 0,
+          bnb: START_BNB,
+          sessionsStarted: 0,
+          feesPaid: 0,
+          refBnbEarned: 0,
+          globalMined: 4120384, // simulated network baseline
+          machines: [freshMachine(), freshMachine()],
+          refCode: rndCode(8),
+          refEvents: 0,
+          refMined: 0,
+          refEarned: 0,
+          log: []
+        };
+      }
+
+      var state = defaultState();
+      try {
+        var saved = localStorage.getItem(STORE_KEY);
+        if (saved) {
+          var parsed = JSON.parse(saved);
+          if (parsed && parsed.machines && parsed.machines.length === 2) state = parsed;
+        }
+      } catch (e) { /* storage unavailable — run in-memory only */ }
+
+      // saves from before the session fee existed get the new fields filled in
+      if (state.bnb == null) state.bnb = START_BNB;
+      if (state.sessionsStarted == null) state.sessionsStarted = 0;
+      if (state.feesPaid == null) state.feesPaid = 0;
+      if (state.refBnbEarned == null) state.refBnbEarned = 0;
+
+      var lastTick = Date.now();
+      function save() {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+      }
+
+      /* ---------- economy helpers ---------- */
+      function epochIndex() {
+        var i = Math.floor(state.globalMined / EPOCH_SIZE);
+        return Math.min(3, Math.max(0, i));
+      }
+      function epochMult() { return EPOCH_MULT[epochIndex()]; }
+      function machineRate(m) { return BASE_RATE * TIERS[m.tier].mult * epochMult(); }
+      function machineHash(m) { return BASE_HASH * TIERS[m.tier].mult; }
+
+      /* ---------- formatting ---------- */
+      var nf2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+      function fmt(n) { return nf2.format(n); }
+      function fmtBnb(n) { return n.toFixed(5); }
+      function fmt0(n) { return nf0.format(Math.floor(n)); }
+      function fmtInt(n) {
+        return new Intl.NumberFormat("en-US").format(Math.floor(n));
+      }
+      function clock(ms) {
+        if (ms < 0) ms = 0;
+        var s = Math.floor(ms / 1000);
+        var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+        function p(x) { return (x < 10 ? "0" : "") + x; }
+        return p(h) + ":" + p(m) + ":" + p(ss);
+      }
+      function timeNow() {
+        var d = new Date();
+        function p(x) { return (x < 10 ? "0" : "") + x; }
+        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+      }
+
+      /* ---------- log & toast ---------- */
+      var logEl = document.getElementById("log");
+      function addLog(html) {
+        state.log.unshift({ t: timeNow(), html: html });
+        if (state.log.length > 9) state.log.length = 9;
+        renderLog();
+      }
+      function renderLog() {
+        if (!state.log.length) {
+          logEl.innerHTML = '<div><span class="t">--:--:--</span>console ready. connect an Agent ID and start a machine.</div>';
+          return;
+        }
+        logEl.innerHTML = state.log.map(function (e) {
+          return '<div><span class="t">' + e.t + "</span>" + e.html + "</div>";
+        }).join("");
+      }
+      var toastEl = document.getElementById("toast"), toastTimer = null;
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2600);
+      }
+
+      /* ---------- machines UI ---------- */
+      var machinesEl = document.getElementById("machines");
+      function machineCard(m, i) {
+        var tier = TIERS[m.tier];
+        var next = TIERS[m.tier + 1];
+        var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
+        var progress = m.running ? Math.min(100, (1 - remaining / SESSION_MS) * 100) : (m.accrued > 0 ? 100 : 0);
+        var status, statusCls;
+        if (m.running) { status = "MINING"; statusCls = "run"; }
+        else if (m.accrued > 0.0001) { status = "READY TO CLAIM"; statusCls = "done"; }
+        else { status = "IDLE"; statusCls = "idle"; }
+
+        var feeNow = state.sessionsStarted === 0 ? 0 : SESSION_FEE;
+        var startBtn = m.running
+          ? '<button class="btn btn-line btn-sm" data-act="start" data-i="' + i + '">Running</button>'
+          : '<button class="btn btn-term btn-sm" data-act="start" data-i="' + i + '">Start Mining</button>';
+        var upgradeBtn = next
+          ? '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade</button>'
+          : '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Max Tier</button>';
+
+        var accent = i === 0 ? "#f0b90b" : "#4ade80";
+        var idNum = "ID-00" + (i + 1);
+        var barPat = [3, 1.5, 2.5, 1.5, 3, 1.5, 2.5, 1.5, 3, 1.5, 2.5];
+        var bars = "", bx = -21;
+        for (var b = 0; b < barPat.length; b++) {
+          bars += '<rect x="' + bx.toFixed(1) + '" y="27" width="' + barPat[b] + '" height="8" />';
+          bx += barPat[b] + 1.7;
+        }
+        var botSvg =
+          '<svg width="54" height="78" viewBox="-36 -55 72 104" role="img" aria-label="Agent ID badge for mining unit ' + (i + 1) + '">' +
+            '<g class="mbot">' +
+              '<line x1="0" y1="-40" x2="0" y2="-47" stroke="' + accent + '" stroke-width="3" stroke-linecap="round" />' +
+              '<circle class="led' + (i === 1 ? " d2" : "") + '" cx="0" cy="-49.5" r="3.4" fill="' + accent + '" />' +
+              '<rect x="-30" y="-40" width="60" height="84" rx="9" fill="#050705" stroke="' + accent + '" stroke-width="3" />' +
+              '<text x="0" y="-27" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" letter-spacing="1.6" fill="' + accent + '">AGENT ID</text>' +
+              '<line x1="-22" y1="-21" x2="22" y2="-21" stroke="' + accent + '" stroke-width="1.4" opacity="0.45" />' +
+              '<use href="#robotFace' + (i === 0 ? "Gold" : "Green") + '" transform="translate(0,-4) scale(0.72)"></use>' +
+              '<text x="0" y="23" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#e9f2df">' + idNum + "</text>" +
+              '<g fill="' + accent + '" opacity="0.85">' + bars + "</g>" +
+            "</g>" +
+          "</svg>";
+        var eqSpans = "";
+        for (var s = 0; s < 18; s++) eqSpans += "<span></span>";
+
+        return (
+          '<article class="machine' + (m.running ? " active" : "") + '">' +
+            '<div class="m-head"><div style="display:flex;gap:11px;align-items:center;">' + botSvg + "<div>" +
+              '<div class="slot">SLOT ' + (i + 1) + " · TIER " + (m.tier + 1) + "</div>" +
+              "<h3>" + tier.name + "</h3>" +
+            '</div></div><span class="status ' + statusCls + '"><span class="dot"></span>' + status + "</span></div>" +
+            '<div class="m-tele">' +
+              '<div><div class="k">HASHRATE</div><div class="val" id="thash-' + i + '">0.0 MH/s</div></div>' +
+              '<div><div class="k">TEMP</div><div class="val" id="ttemp-' + i + '">31.0°C</div></div>' +
+              '<div><div class="k">POWER</div><div class="val" id="twatt-' + i + '">12 W</div></div>' +
+              '<div><div class="k">FAN</div><div class="val" id="trpm-' + i + '">0 RPM</div></div>' +
+            "</div>" +
+            '<div class="eq" id="eq-' + i + '" aria-hidden="true">' + eqSpans + "</div>" +
+            '<div class="m-grid">' +
+              '<span class="k">Nominal rate</span><span class="val">' + fmt0(machineHash(m)) + " MH/s</span>" +
+              '<span class="k">Earns</span><span class="val">' + (machineRate(m) * 86400).toFixed(1) + " $AID/day</span>" +
+              '<span class="k">Time left</span><span class="val" id="left-' + i + '">' + (m.running ? clock(remaining) : "—") + "</span>" +
+              '<span class="k">Session</span><span class="val">24 hours</span>' +
+              '<span class="k">Session fee</span><span class="val">' +
+              (feeNow === 0 ? "FREE — first session" : SESSION_FEE.toFixed(3) + " BNB (sim)") + "</span>" +
+              '<span class="k">Next upgrade</span><span class="val">' +
+              (next ? next.name + " · " + fmt0(next.cost) + " $AID" : "— max tier") + "</span>" +
+            "</div>" +
+            '<div class="m-pending"><span id="pend-' + i + '">' + fmt(m.accrued) + '</span> <small>$AID unclaimed</small></div>' +
+            '<div class="sbar"><div id="prog-' + i + '" style="width:' + progress.toFixed(1) + '%"></div></div>' +
+            '<div class="m-actions">' + startBtn +
+              '<button class="btn btn-term btn-sm" data-act="claim" data-i="' + i + '">Claim</button>' +
+              upgradeBtn +
+            "</div>" +
+          "</article>"
+        );
+      }
+      function renderMachines() {
+        machinesEl.innerHTML = state.machines.map(machineCard).join("");
+      }
+
+      /* ---------- epochs UI ---------- */
+      var epochsEl = document.getElementById("epochs");
+      function renderEpochs() {
+        var cur = epochIndex();
+        epochsEl.innerHTML = EPOCH_MULT.map(function (mult, i) {
+          var from = i * EPOCH_SIZE, to = (i + 1) * EPOCH_SIZE;
+          var tag = i === cur ? '<span class="tag">CURRENT</span>'
+                  : i < cur ? '<span class="tag future">DONE</span>'
+                  : '<span class="tag future">LOCKED</span>';
+          return (
+            '<div class="epoch' + (i === cur ? " now" : "") + '">' +
+              '<div class="n">EPOCH ' + (i + 1) + "</div>" +
+              '<div class="r">×' + mult.toFixed(3).replace(/0+$/, "").replace(/\.$/, ".0") + "</div>" +
+              '<div class="d">Reward rate for mined ' + fmtInt(from) + " – " + fmtInt(to) + " $AID." +
+              (i === 0 ? " Full reward." : " Halved from the epoch before.") + "</div>" +
+              tag +
+            "</div>"
+          );
+        }).join("");
+      }
+
+      /* ---------- main render ---------- */
+      var el = function (id) { return document.getElementById(id); };
+      function render() {
+        el("agentBadge").textContent = state.agentId || "not connected";
+        el("connectBtn").textContent = state.agentId ? "Connected" : "Connect";
+        el("balance").textContent = fmt(state.balance);
+        el("totalEarned").textContent = fmt(state.totalEarned);
+        el("bnbBalance").textContent = fmtBnb(state.bnb);
+        el("bnbSub").textContent = "Fee " + SESSION_FEE.toFixed(3) + " BNB/session · paid " + fmtBnb(state.feesPaid) +
+          " BNB so far · " + (state.sessionsStarted === 0 ? "first session still FREE" : "first session used");
+        var totalHash = state.machines.reduce(function (s, m) { return s + machineHash(m); }, 0);
+        var perDay = state.machines.reduce(function (s, m) { return s + machineRate(m) * 86400; }, 0);
+        el("hashPower").textContent = fmt0(totalHash);
+        el("perDay").textContent = fmt0(perDay);
+        el("globalMined").textContent = fmtInt(state.globalMined);
+        el("supplyBar").style.width = Math.min(100, (state.globalMined / SUPPLY) * 100).toFixed(2) + "%";
+        var cur = epochIndex();
+        el("rigMined").textContent = fmtInt(state.globalMined);
+        el("rigEpoch").textContent = (cur + 1) + " / 4";
+        el("rigRate").textContent = "×" + EPOCH_MULT[cur];
+        el("halvingNote").textContent = cur < 3
+          ? "Epoch " + (cur + 1) + " · next halving at " + fmtInt((cur + 1) * EPOCH_SIZE)
+          : "Epoch 4 · final epoch — no more halvings";
+        el("refLink").value = state.refCode;
+        el("refLinkText").textContent = "agent-id-miner/r/" + state.refCode;
+        el("refEvents").textContent = fmt0(state.refEvents);
+        el("refMined").textContent = fmt0(state.refMined);
+        el("refEarned").textContent = fmt(state.refEarned);
+        el("refBnb").textContent = fmtBnb(state.refBnbEarned);
+        renderMachines();
+        renderEpochs();
+      }
+
+      /* ---------- actions ---------- */
+      function connectAgent() {
+        if (state.agentId) {
+          toast("Already connected: " + state.agentId + " — you can start mining.");
+          return;
+        }
+        var names = ["nova", "orbit", "cipher", "relay", "vector", "onyx", "pulse", "atlas"];
+        state.agentId = names[Math.floor(Math.random() * names.length)] + "-" +
+          Math.floor(1000 + Math.random() * 9000) + ".agent";
+        addLog('Agent ID connected: <span class="g">' + state.agentId + "</span> (simulated)");
+        toast("Agent ID connected (simulation): " + state.agentId);
+        save(); render();
+      }
+      function startMachine(i) {
+        var m = state.machines[i];
+        if (m.running) {
+          toast("Already mining — " + clock(Math.max(0, m.endsAt - Date.now())) + " left in this session.");
+          return;
+        }
+        if (!state.agentId) {
+          toast("Tap Connect first — mining needs an Agent ID.");
+          document.getElementById("console").scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+        var fee = state.sessionsStarted === 0 ? 0 : SESSION_FEE;
+        if (fee > 0 && state.bnb < fee) {
+          addLog("Slot " + (i + 1) + " can't start — not enough simulated BNB for the " +
+            SESSION_FEE.toFixed(3) + " BNB session fee. Top up in the console.");
+          toast("Not enough BNB — tap Top Up first.");
+          save(); render();
+          return;
+        }
+        state.bnb -= fee;
+        state.feesPaid += fee;
+        state.sessionsStarted += 1;
+        m.running = true;
+        m.endsAt = Date.now() + SESSION_MS;
+        m.lastAt = Date.now();
+        addLog("Slot " + (i + 1) + " started a 24h session — " + TIERS[m.tier].name +
+          (fee === 0
+            ? ". First session FREE — no fee charged."
+            : ". Session fee " + fmtBnb(fee) + " BNB paid (simulated)."));
+        toast(fee === 0
+          ? "Slot " + (i + 1) + " mining for 24 hours — first session free."
+          : "Slot " + (i + 1) + " mining — fee " + SESSION_FEE.toFixed(3) + " BNB (sim).");
+        save(); render();
+      }
+      function claimMachine(i, silent) {
+        var m = state.machines[i];
+        if (m.accrued <= 0.0001) {
+          if (!silent) toast(m.running ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Mining first.");
+          return 0;
+        }
+        var amt = m.accrued;
+        m.accrued = 0;
+        state.balance += amt;
+        state.totalEarned += amt;
+        if (!silent) {
+          addLog('Claimed <span class="g">' + fmt(amt) + " $AID</span> from slot " + (i + 1) + ".");
+          toast("Claimed " + fmt(amt) + " $AID (simulation).");
+        }
+        return amt;
+      }
+      function upgradeMachine(i) {
+        var m = state.machines[i];
+        var next = TIERS[m.tier + 1];
+        if (!next) { toast("Max tier — this machine is fully upgraded."); return; }
+        if (state.balance < next.cost) {
+          toast("Need " + fmt0(next.cost) + " $AID for " + next.name + " — you have " + fmt(state.balance) + ". Claim more first.");
+          return;
+        }
+        state.balance -= next.cost;
+        m.tier += 1;
+        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — hash rate ×" + next.mult + ".");
+        toast("Slot " + (i + 1) + " upgraded to " + next.name + ".");
+        save(); render();
+      }
+
+      machinesEl.addEventListener("click", function (ev) {
+        var btn = ev.target.closest("button[data-act]");
+        if (!btn) return;
+        var i = parseInt(btn.getAttribute("data-i"), 10);
+        var act = btn.getAttribute("data-act");
+        if (act === "start") startMachine(i);
+        else if (act === "claim") { claimMachine(i); save(); render(); }
+        else if (act === "upgrade") upgradeMachine(i);
+      });
+
+      el("connectBtn").addEventListener("click", connectAgent);
+      el("topupBtn").addEventListener("click", function () {
+        state.bnb += 0.01;
+        addLog('Topped up <span class="g">+0.01000 BNB</span> (simulated) — wallet balance ' + fmtBnb(state.bnb) + " BNB.");
+        toast("Added 0.01 BNB (simulated).");
+        save(); render();
+      });
+      el("heroStart").addEventListener("click", function () {
+        document.getElementById("console").scrollIntoView({ behavior: "smooth" });
+        if (!state.agentId) connectAgent();
+        if (!state.machines[0].running) startMachine(0);
+        if (!state.machines[1].running) startMachine(1);
+      });
+      el("claimAllBtn").addEventListener("click", function () {
+        var total = 0;
+        for (var i = 0; i < state.machines.length; i++) total += claimMachine(i, true);
+        if (total > 0) {
+          addLog('Claimed <span class="g">' + fmt(total) + " $AID</span> from all slots.");
+          toast("Claimed " + fmt(total) + " $AID (simulation).");
+        } else {
+          var anyRunning = state.machines.some(function (m) { return m.running; });
+          toast(anyRunning ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Mining first.");
+        }
+        save(); render();
+      });
+      el("copyRefBtn").addEventListener("click", function () {
+        var link = state.refCode;
+        function done() { toast("Code copied: " + link); }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link).then(done, function () {
+            el("refLink").select(); document.execCommand("copy"); done();
+          });
+        } else {
+          el("refLink").select(); document.execCommand("copy"); done();
+        }
+      });
+      el("copyPromptBtn").addEventListener("click", function () {
+        var text = el("agentPrompt").textContent;
+        function done() { toast("Agent prompt copied."); }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { toast("Copy failed — select the prompt text manually."); });
+        } else {
+          toast("Copy not supported here — select the prompt text manually.");
+        }
+      });
+      el("simInviteeBtn").addEventListener("click", function () {
+        var mined = 80 + Math.random() * 160;          // invitee's simulated claim
+        var bonus = mined * 0.10;                      // minted on top, never deducted
+        var sessions = 2 + Math.floor(Math.random() * 3); // invitee's paid sessions
+        var feeBonus = sessions * SESSION_FEE * 0.10;  // 10% of their session fees
+        state.refEvents += 1;
+        state.refMined += mined;
+        state.refEarned += bonus;
+        state.refBnbEarned += feeBonus;
+        state.balance += bonus;
+        state.totalEarned += bonus;
+        state.bnb += feeBonus;
+        addLog('Invitee mined ' + fmt(mined) + ' $AID → referral bonus <span class="g">+' + fmt(bonus) + " $AID</span> minted for you, plus " + fmtBnb(feeBonus) + " BNB from their session fees (sim).");
+        toast("Referral bonus +" + fmt(bonus) + " $AID + " + fmtBnb(feeBonus) + " BNB (simulation).");
+        save(); render();
+      });
+      el("buyAidBtn").addEventListener("click", function () {
+        var msg = el("presaleMsg");
+        if (msg) {
+          msg.hidden = false;
+          msg.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+        toast("Not open yet — read the note below the button.");
+      });
+      el("resetBtn").addEventListener("click", function () {
+        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+        state = defaultState();
+        lastTick = Date.now();
+        addLog("Simulation reset. Fresh start — supply counter restored.");
+        save(); render();
+        toast("Simulation reset.");
+      });
+
+      /* ---------- live telemetry (simulated rig sensors) ---------- */
+      var TIER_WATTS = [1150, 3250, 5400]; // nominal power draw per tier
+      var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var tele = [
+        { hash: 0, temp: 31, watt: 12, rpm: 0 },
+        { hash: 0, temp: 31, watt: 12, rpm: 0 }
+      ];
+      function stepTele() {
+        state.machines.forEach(function (m, i) {
+          var t = tele[i];
+          if (m.running) {
+            var base = machineHash(m);
+            var target = base * (0.94 + Math.random() * 0.09); // hashrate wanders ±
+            t.hash += (target - t.hash) * 0.45;
+            var tempTarget = 54 + m.tier * 6 + (t.hash / base) * 11 + Math.random() * 1.5;
+            t.temp += (tempTarget - t.temp) * 0.07;            // heat builds slowly
+            var wattTarget = TIER_WATTS[m.tier] * (0.97 + Math.random() * 0.05);
+            t.watt += (wattTarget - t.watt) * 0.4;
+            t.rpm = Math.round(2600 + Math.max(0, t.temp - 38) * 48 + Math.random() * 140);
+          } else {
+            t.hash *= 0.55; if (t.hash < 0.05) t.hash = 0;     // spin-down
+            t.temp += (31 - t.temp) * 0.04;                    // cool toward ambient
+            t.watt += (12 - t.watt) * 0.3;                     // standby draw
+            t.rpm = Math.max(0, t.rpm - 420);
+          }
+        });
+      }
+
+      /* ---------- hashrate chart ---------- */
+      var chartEl = document.getElementById("hashChart");
+      var chartCtx = chartEl ? chartEl.getContext("2d") : null;
+      var hist = [];
+      function sizeChart() {
+        if (!chartEl) return;
+        var dpr = window.devicePixelRatio || 1;
+        var w = chartEl.getBoundingClientRect().width;
+        if (w > 0) { chartEl.width = Math.round(w * dpr); chartEl.height = Math.round(54 * dpr); }
+      }
+      function drawChart() {
+        if (!chartCtx || !chartEl.width) return;
+        var w = chartEl.width, h = chartEl.height, dpr = window.devicePixelRatio || 1;
+        chartCtx.clearRect(0, 0, w, h);
+        chartCtx.strokeStyle = "rgba(147,164,135,0.16)";
+        chartCtx.lineWidth = 1;
+        for (var g = 0.25; g < 1; g += 0.25) {
+          chartCtx.beginPath(); chartCtx.moveTo(0, h * g); chartCtx.lineTo(w, h * g); chartCtx.stroke();
+        }
+        if (hist.length < 2) return;
+        var max = Math.max.apply(null, hist) * 1.12;
+        var min = Math.min.apply(null, hist) * 0.88;
+        if (max - min < 1) { max += 0.5; min -= 0.5; }
+        chartCtx.beginPath();
+        hist.forEach(function (v, i) {
+          var x = (i / 89) * w;
+          var y = h - ((v - min) / (max - min)) * (h - 8 * dpr) - 4 * dpr;
+          if (i) chartCtx.lineTo(x, y); else chartCtx.moveTo(x, y);
+        });
+        chartCtx.strokeStyle = "#4ade80";
+        chartCtx.lineWidth = 1.6 * dpr;
+        chartCtx.stroke();
+        chartCtx.lineTo(w, h); chartCtx.lineTo(0, h); chartCtx.closePath();
+        chartCtx.fillStyle = "rgba(74,222,128,0.10)";
+        chartCtx.fill();
+      }
+      window.addEventListener("resize", function () { sizeChart(); drawChart(); syncNavH(); });
+
+      /* keep --nav-h equal to the real sticky-nav height (it wraps to two
+         rows on phones) so anchor jumps never slide under it */
+      var topnavEl = document.querySelector(".topnav");
+      function syncNavH() {
+        if (topnavEl) document.documentElement.style.setProperty("--nav-h", topnavEl.offsetHeight + "px");
+      }
+
+      /* ---------- in-place live updates (no full re-render) ---------- */
+      var lastEpochShown = -1;
+      function setText(id, txt) { var n = document.getElementById(id); if (n) n.textContent = txt; }
+      function updateLive() {
+        setText("globalMined", fmtInt(state.globalMined));
+        var bar = document.getElementById("supplyBar");
+        if (bar) bar.style.width = Math.min(100, (state.globalMined / SUPPLY) * 100).toFixed(2) + "%";
+        var cur = epochIndex();
+        setText("rigMined", fmtInt(state.globalMined));
+        setText("rigEpoch", (cur + 1) + " / 4");
+        setText("rigRate", "×" + EPOCH_MULT[cur]);
+        if (cur !== lastEpochShown) {
+          lastEpochShown = cur;
+          setText("halvingNote", cur < 3
+            ? "Epoch " + (cur + 1) + " · next halving at " + fmtInt((cur + 1) * EPOCH_SIZE)
+            : "Epoch 4 · final epoch — no more halvings");
+          renderEpochs();
+        }
+        var totalW = 0, tempSum = 0;
+        state.machines.forEach(function (m, i) {
+          var t = tele[i], n = i + 1;
+          totalW += t.watt; tempSum += t.temp;
+          setText("heroHash" + n, t.hash.toFixed(1));
+          setText("heroTemp" + n, t.temp.toFixed(1));
+          setText("heroWatt" + n, fmt0(t.watt));
+          setText("heroRpm" + n, fmtInt(t.rpm));
+          setText("heroName" + n, "UNIT-0" + n + " · " + TIERS[m.tier].name.toUpperCase());
+          var bot = document.getElementById("heroBot" + n);
+          if (bot) bot.style.animationDuration = m.running ? (1.15 - m.tier * 0.18).toFixed(2) + "s" : "3.4s";
+          setText("thash-" + i, t.hash.toFixed(1) + " MH/s");
+          var tempEl = document.getElementById("ttemp-" + i);
+          if (tempEl) {
+            tempEl.textContent = t.temp.toFixed(1) + "°C";
+            tempEl.className = "val" + (t.temp > 74 ? " t-hot" : t.temp > 66 ? " t-warn" : "");
+          }
+          setText("twatt-" + i, fmtInt(t.watt) + " W");
+          setText("trpm-" + i, fmtInt(t.rpm) + " RPM");
+          setText("pend-" + i, fmt(m.accrued));
+          setText("left-" + i, m.running ? clock(Math.max(0, m.endsAt - Date.now())) : "—");
+          var prog = document.getElementById("prog-" + i);
+          if (prog) {
+            var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
+            prog.style.width = (m.running ? Math.min(100, (1 - remaining / SESSION_MS) * 100) : (m.accrued > 0 ? 100 : 0)).toFixed(1) + "%";
+          }
+          var eq = document.getElementById("eq-" + i);
+          if (eq && !REDUCED) {
+            var load = m.running ? Math.min(1, t.hash / machineHash(m)) : 0;
+            for (var s = 0; s < eq.children.length; s++) {
+              eq.children[s].style.height = m.running
+                ? (12 + Math.random() * 88 * (0.35 + load * 0.65)).toFixed(0) + "%"
+                : "8%";
+            }
+          }
+        });
+        setText("rigPower", fmtInt(totalW) + " W");
+        setText("rigTemp", (tempSum / state.machines.length).toFixed(1) + "°C");
+        var totalHash = tele.reduce(function (s, t) { return s + t.hash; }, 0);
+        var rigMining = state.machines.some(function (m) { return m.running; }) && totalHash > 0;
+        var rigStatusEl = document.getElementById("rigStatus");
+        if (rigStatusEl) {
+          rigStatusEl.textContent = rigMining ? "MINING" : "IDLE";
+          rigStatusEl.classList.toggle("idle", !rigMining);
+        }
+      }
+
+      /* ---------- tick loop ---------- */
+      function tick() {
+        var now = Date.now();
+        var dt = Math.min(now - lastTick, 60000); // cap long tab sleeps per tick
+        lastTick = now;
+        var changed = false;
+        var sessionEnded = false;
+
+        // simulated network keeps mining in the background
+        state.globalMined += dt / 1000 * (0.8 + Math.random() * 0.7);
+
+        state.machines.forEach(function (m, i) {
+          if (!m.running) return;
+          var from = Math.max(m.lastAt || now, m.endsAt - SESSION_MS);
+          var to = Math.min(now, m.endsAt);
+          if (to > from) {
+            var gain = machineRate(m) * ((to - from) / 1000);
+            m.accrued += gain;
+            state.globalMined += gain;
+            changed = true;
+          }
+          m.lastAt = to;
+          if (now >= m.endsAt) {
+            m.running = false;
+            addLog("Slot " + (i + 1) + ' session complete — <span class="g">' + fmt(m.accrued) + " $AID</span> ready to claim.");
+            changed = true;
+            sessionEnded = true;
+          }
+        });
+
+        stepTele();
+        var net = 238 + Math.sin(now / 9000) * 16 + Math.random() * 9 +
+          tele.reduce(function (s, t) { return s + t.hash; }, 0);
+        hist.push(net);
+        if (hist.length > 90) hist.shift();
+
+        if (sessionEnded) renderMachines();
+        updateLive();
+        if (!REDUCED) drawChart();
+        if (changed) save();
+      }
+
+      /* migrate older saves: a running machine resumes accrual from its
+         last saved timestamp, so time away still counts (24h cap applies) */
+      state.machines.forEach(function (m) {
+        if (m.lastAt == null) m.lastAt = Date.now();
+      });
+
+      renderLog();
+      render();
+      sizeChart();
+      syncNavH();
+      window.addEventListener("load", syncNavH);
+      for (var hp = 0; hp < 40; hp++) hist.push(238 + Math.sin(hp / 6) * 14 + Math.random() * 8);
+      drawChart();
+      setInterval(tick, 500);
+      setInterval(save, 5000);
+    </script>
+  </body>
+</html>
