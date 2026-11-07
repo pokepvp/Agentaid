@@ -1,0 +1,376 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent ID Miner · Deploy</title>
+<style>
+:root{--bg:#0b0806;--bg2:#100b06;--panel:#17100a;--panel2:#1f150c;--line:#3a2a16;--line2:#54401f;--ink:#f5ead3;--muted:#bfae8d;--faint:#8a795c;--amber:#ffb02e;--amber2:#ff8a3c;--orange:#f08c1e;--green:#9ed65c;--teal:#3fbfa8;--red:#ff7a6b;--shadow:#000}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,"Segoe UI",Arial,sans-serif;margin:0 auto;max-width:980px;padding:0 20px 40px;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55;background-image:radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,176,46,.10), transparent 60%),repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 2px, transparent 2px 4px)}
+::selection{background:var(--amber);color:#1a1206}
+a{color:var(--amber)}
+header{position:sticky;top:0;z-index:50;background:rgba(11,8,6,.92);border-bottom:3px solid var(--line);margin:0 -20px;padding:0 20px}
+.bar{display:flex;align-items:center;gap:16px;padding:12px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);margin-right:auto}
+.logo-box{width:52px;height:44px;flex:none;background:var(--panel2);border:3px solid var(--line2);box-shadow:4px 4px 0 var(--shadow);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;font-weight:700;font-size:15px;color:var(--amber);letter-spacing:1px}
+.brand-name{font-family:"Courier New",monospace;font-size:17px;letter-spacing:1px;color:var(--ink);font-weight:700}
+.brand-name em{font-style:normal;color:var(--amber)}
+.brand-tag{display:block;font-family:monospace;font-size:10px;letter-spacing:2px;color:var(--faint);margin-top:5px}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;padding:8px 12px;border:2px solid transparent}
+nav a:hover{color:var(--ink);border-color:var(--line);background:var(--panel)}
+.hero{padding:56px 0 10px}
+.badge{display:inline-block;font-family:monospace;font-size:11px;letter-spacing:2px;color:var(--amber);border:2px solid var(--line2);background:var(--panel);padding:6px 10px;margin-bottom:20px}
+h1{font-family:"Courier New",monospace;font-size:clamp(28px,6vw,48px);line-height:1.25;margin:0 0 20px;color:var(--ink);text-shadow:4px 4px 0 rgba(255,138,60,.35);letter-spacing:1px}
+h1 .hl{color:var(--amber)}
+.lead{font-size:18px;color:var(--muted);max-width:34em;margin:0 0 26px}
+.lead strong{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.stat{background:var(--panel);border:3px solid var(--line);padding:14px 12px;box-shadow:5px 5px 0 var(--shadow)}
+.stat b{display:block;font-family:"Courier New",monospace;font-size:15px;color:var(--amber);margin-bottom:8px}
+.stat span{font-size:12.5px;color:var(--muted);line-height:1.4;display:block}
+.stat.green b{color:var(--green)}
+.stat.teal b{color:var(--teal)}
+.marquee{border-top:3px solid var(--line);border-bottom:3px solid var(--line);background:var(--bg2);overflow:hidden;padding:10px 0;margin:24px 0 8px}
+.marquee-track{display:flex;width:max-content;animation:scroll 30s linear infinite}
+.marquee span{font-family:monospace;font-size:11px;color:var(--faint);padding:0 22px;white-space:nowrap;letter-spacing:1px}
+.marquee span i{font-style:normal;color:var(--amber)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+section{padding:48px 0 8px}
+.sec-kicker{font-family:monospace;font-size:11px;letter-spacing:2.5px;color:var(--teal);margin-bottom:12px}
+h2{font-family:"Courier New",monospace;font-size:clamp(19px,3.4vw,26px);line-height:1.5;margin:0 0 12px;letter-spacing:1px}
+.sec-head{max-width:640px;margin-bottom:30px}
+.sec-head p{color:var(--muted);margin:0}
+.card{background:var(--panel);border:3px solid var(--line);box-shadow:5px 5px 0 var(--shadow);padding:20px;margin:20px 0}
+.card h3{font-family:"Courier New",monospace;font-size:17px;margin:0 0 10px;line-height:1.5;letter-spacing:.5px}
+.card.free{border-top:8px solid var(--green)}
+.card.paid{border-top:8px solid var(--amber)}
+.card.teal{border-top:8px solid var(--teal)}
+.warn{border:3px solid var(--amber);background:#2a1f00;box-shadow:5px 5px 0 var(--shadow);padding:18px;margin:20px 0}
+button{width:100%;padding:14px;font-size:16px;font-weight:700;cursor:pointer;background:var(--amber);color:#1a1206;border:3px solid var(--shadow);box-shadow:4px 4px 0 var(--shadow);margin:8px 0;font-family:system-ui,sans-serif}
+button:hover{background:#ffc154}
+button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.ghost{background:var(--panel2);color:var(--ink);border-color:var(--line2)}
+button.ghost:hover{background:#2a1d10}
+input{width:100%;padding:12px;font-size:15px;border:3px solid var(--line2);background:var(--bg);color:var(--ink);box-sizing:border-box;margin:6px 0;font-family:monospace;outline:none}
+input:focus{border-color:var(--amber)}
+textarea{width:100%;height:120px;background:var(--bg);color:var(--ink);border:3px solid var(--line2);padding:10px;box-sizing:border-box;font-family:monospace;font-size:13px}
+label{font-weight:700;font-family:monospace;font-size:12px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.ok{color:var(--green)}
+.err{color:var(--red)}
+code{word-break:break-all;font-family:monospace;color:var(--amber);font-size:13px}
+pre{white-space:pre-wrap;word-break:break-all;background:var(--bg);padding:12px;border:3px solid var(--line);max-height:300px;overflow:auto;font-family:monospace;font-size:12.5px}
+#logPanel{white-space:pre-wrap;word-break:break-all;background:var(--bg);color:var(--ink);border:3px solid var(--line);padding:10px;max-height:260px;overflow:auto;font-family:monospace;font-size:13px}
+ul{padding-left:20px}
+li{margin-bottom:8px}
+.faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.qa{background:var(--panel);border:3px solid var(--line);padding:18px;box-shadow:5px 5px 0 var(--shadow)}
+.qa h3{margin:0 0 8px;font-size:16px}
+.qa p{margin:0;color:var(--muted);font-size:14.5px}
+.qa b{color:var(--amber)}
+footer{margin-top:72px;border-top:3px solid var(--line);background:var(--bg2);padding:28px 0 36px}
+.foot{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.foot .fbrand{font-family:"Courier New",monospace;font-size:13px;font-weight:700}
+.foot .fbrand em{font-style:normal;color:var(--amber)}
+.foot p{margin:0;color:var(--faint);font-size:13px;font-family:monospace}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.faq{grid-template-columns:1fr}.hero{padding-top:36px}}
+@media (prefers-reduced-motion:reduce){.marquee-track{animation:none}html{scroll-behavior:auto}}
+</style></head><body>
+<header><div class="bar"><a class="brand" href="#top"><span class="logo-box">AID</span><span><span class="brand-name">AGENT ID <em>MINER</em></span><span class="brand-tag">DEPLOY &middot; BNB MAINNET 56</span></span></a><nav><a href="#rules">Rules</a><a href="#steps">Deploy</a><a href="#verify">Verify</a><a href="#faq">FAQ</a></nav></div></header>
+<section class="hero" id="top"><span class="badge">OWNER TOOL &middot; BNB MAINNET (56) &middot; NO TESTNET</span><h1>AGENT ID MINER <span class="hl">DEPLOY</span></h1><p class="lead">Owner tool to deploy <strong>$AID</strong> + AIDPresale + AgentIdMiner on <strong>BNB Smart Chain (mainnet)</strong>. Every step is signed in your wallet &mdash; no seed phrase, ever.</p><div class="stats"><div class="stat"><b>21,000,000</b><span>$AID max supply &middot; 4 epochs</span></div><div class="stat green"><b>2,100,000</b><span>$AID presale allocation (10%)</span></div><div class="stat"><b>0.003 BNB</b><span>Paid session fee &middot; Free sessions 3h</span></div><div class="stat teal"><b>10 BNB</b><span>Presale hard cap &middot; 7 days</span></div></div></section>
+<div class="marquee"><div class="marquee-track"><span>SESSION FEE <i>0.003 BNB</i></span><span>FREE <i>3H &middot; &times;1</i></span><span>PAID <i>12H &middot; &times;3</i></span><span>PRESALE <i>1 BNB = 210,000 $AID</i></span><span>HARD CAP <i>10 BNB</i></span><span>MINING <i>100 $AID / DAY / MACHINE</i></span><span>MAINNET <i>ONLY &middot; CHAIN 56</i></span><span>SESSION FEE <i>0.003 BNB</i></span><span>FREE <i>3H &middot; &times;1</i></span><span>PAID <i>12H &middot; &times;3</i></span><span>PRESALE <i>1 BNB = 210,000 $AID</i></span><span>HARD CAP <i>10 BNB</i></span><span>MINING <i>100 $AID / DAY / MACHINE</i></span><span>MAINNET <i>ONLY &middot; CHAIN 56</i></span></div></div>
+<div class="warn"><b>Owner note — read first:</b> this tool is for the owner only. Every transaction is signed directly in your wallet; <b>your seed phrase / private key never leaves your wallet and this page never asks for it</b>. These contracts are <b>not audited</b>. Deploy is on <b>BNB Mainnet (56) only — there is no testnet step</b>. <b>Mainnet deploys cannot be undone, and you pay real BNB gas.</b> The miner contract has <b>NO owner and NO withdraw function</b> — nobody can take user funds, and nobody can change the rate, the fee, or the treasury after deploy. <b>Sessions: Free is 3 hours at x1 (0 BNB, repeatable); Paid is 12 hours at x3 and costs 0.003 BNB. Upgrades cost $AID + 0.003 BNB each.</b> 90% of every paid fee goes to the treasury and 10% to the referrer — the treasury is set once in the constructor (Step 4) and <b>cannot be changed</b>. <b>Presale: 2,100,000 $AID at 1 BNB = 210,000 $AID, hard cap 10 BNB.</b> Buyers pay BNB to the presale contract and the BNB stays there until the sale ends — only then can you withdraw it to the treasury (Step 8 starts the sale; withdrawing happens after it ends). The only admin step for mining is <code>setMinter()</code> on the token (Step 5, once only), and even that cannot mint above the 21,000,000 $AID cap.</div>
+<section id="rules"><div class="sec-head"><div class="sec-kicker">MINING RULES</div><h2>Rules, locked in</h2><p>These numbers are already decided and baked into the contracts. Nothing here can be changed after deploy.</p></div>
+<div class="card"><h3>Mining rules (already decided)</h3><ul>
+<li>Token <b>$AID</b> ("Agent ID", 18 decimals), max supply <b>21,000,000</b>. Only the miner contract may mint, and never above the cap.</li>
+<li>Mining is only for wallets holding a <b>Binance Agent ID</b> (contract 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F, checked via <code>balanceOf</code>). Sessions are <b>Free (3 hours, x1, 0 BNB, repeatable)</b> or <b>Paid (12 hours, x3, 0.003 BNB)</b>, picked in <code>startMining(bool paid)</code>; accrual per second, <code>claim()</code> mints the accrued $AID.</li>
+<li>2 machine slots per wallet. Each machine earns <b>100 $AID/day</b> in epoch 1 (full rig = 200/day). 4 epochs @ 5,250,000 $AID: rate x1, x0.5, x0.25, x0.125. Once 21M is mined, mining stops.</li>
+<li><b>Session fees: Free sessions cost 0 BNB; Paid sessions cost exactly 0.003 BNB.</b> Free is 3 hours at x1, repeatable as often as you like. Paid is 12 hours at x3. A wrong amount reverts (no refund). The fee is split: <b>90% (0.0027 BNB) goes straight to the treasury</b> (owner wallet, set in Step 4, immutable) and <b>10% (0.0003 BNB) to the referrer</b> if that wallet set a referrer before the session started — with no referrer, 100% goes to the treasury. The referrer share is held in the contract (pull) and withdrawn by the referrer via <code>claimReferralFees()</code>; no BNB is ever stuck without a destination.</li>
+<li><b>Presale: 2,100,000 $AID (10% of supply) at 1 BNB = 210,000 $AID, hard cap 10 BNB.</b> Min buy 0.01 BNB, max 1 BNB per wallet (cumulative), sale lasts 7 days or until sold out. Open to anyone — no Agent ID needed. Buyers pay BNB to the presale contract; the BNB stays there until the sale ends, then the owner withdraws it to the treasury. $AID is sent to the buyer immediately on buy. The presale allocation is minted to the presale contract by the miner (Step 6, once only) and counts toward totalMinted, so Epoch 1 keeps 3,150,000 $AID for miners (5,250,000 − 2,100,000). Mining supply after the presale: 18,900,000 $AID.</li>
+<li>Machine upgrades: Turbo (x2) = <b>500 $AID + 0.003 BNB</b>, Quantum (x4) = <b>2,000 $AID + 0.003 BNB</b>. The $AID cost is <b>burned</b> — no $AID piles up in the miner contract, so no withdraw function is needed — and the 0.003 BNB upgrade fee is split 90% treasury / 10% referrer, like a paid session fee.</li>
+<li>Referral: <code>setReferrer()</code> once per wallet. When the referee claims, the referrer gets <b>+10% minted on top</b> — never taken from the referee.</li>
+<li>The web (artifact agent-id-miner) must <b>NOT</b> be connected to these contracts yet — wiring to the real contracts happens after this deploy is done and the addresses are recorded.</li>
+</ul></div></section>
+<section id="steps"><div class="sec-head"><div class="sec-kicker">DEPLOY STEPS</div><h2>Deploy in order</h2><p>Work through the steps top to bottom. Each step fills in the next one automatically.</p></div>
+<div class="card"><h3>1. Network &amp; Wallet</h3>
+<p>Open this page in your wallet's dApp browser (OKX first, then MetaMask / Trust / Binance Wallet). The wallet that deploys will become the <b>owner</b> of the $AID token.</p>
+<button id="connect">Connect Wallet</button><p id="account">Not connected yet.</p>
+<button id="switchMainnet" class="ghost">Switch to BNB Mainnet (56)</button><p id="chainMsg"></p></div>
+<div class="card free"><h3>2. Deploy $AID Token</h3>
+<p>Constructor: <code>owner_</code> = deployer wallet (automatic from the connected wallet). Deploy this first — the token address is needed in Steps 3 and 4.</p>
+<label>Token owner (= deployer wallet)</label><input id="inpOwner" placeholder="connect wallet first" readonly>
+<button id="deployToken">Deploy AIDToken &amp; Sign in Wallet</button><p id="deployTokenStatus"></p>
+<label>$AID token address</label><input id="inpToken" placeholder="0x… (auto-filled after deploy)">
+<label>Token deploy data (bytecode + constructor arguments)</label><textarea id="deployTokenData" readonly></textarea>
+<button id="copyDeployToken" class="ghost">Copy Token Deploy Data</button></div>
+<div class="card paid"><h3>3. Deploy Presale Contract</h3>
+<p>Constructor: <code>token_</code> = $AID address from Step 2, <code>owner_</code> = deployer wallet (automatic). The presale sells 2,100,000 $AID at 1 BNB = 210,000 $AID (hard cap 10 BNB, min 0.01 BNB, max 1 BNB per wallet, 7 days). Buyers pay BNB to this contract and the BNB stays here until the sale ends — only then can you withdraw it. Deploy this before the miner (Step 4), because the miner needs the presale address in its constructor.</p>
+<label>$AID Token</label><input id="inpPresaleToken" placeholder="0x…">
+<label>Presale owner (= deployer wallet)</label><input id="inpPresaleOwner" placeholder="connect wallet first" readonly>
+<button id="deployPresale">Deploy AIDPresale &amp; Sign in Wallet</button><p id="deployPresaleStatus"></p>
+<label>Presale contract address</label><input id="inpPresale" placeholder="0x… (auto-filled after deploy)">
+<label>Presale deploy data (bytecode + constructor arguments)</label><textarea id="deployPresaleData" readonly></textarea>
+<button id="copyDeployPresale" class="ghost">Copy Presale Deploy Data</button></div>
+<div class="card teal"><h3>4. Deploy Miner Contract</h3>
+<p>Constructor: <code>token_</code> = $AID address from Step 2, <code>agentId_</code> = Binance Agent ID contract (pre-filled, cannot be changed), <code>treasury_</code> = wallet that receives 90% of paid fees — sessions and upgrades (and 100% when there is no referrer), <code>presale_</code> = presale address from Step 3. <b>The treasury cannot be changed after deploy</b> — double-check the address. It defaults to the deployer wallet; change it only if you want fees to go to a different wallet.</p>
+<label>$AID Token</label><input id="inpMinerToken" placeholder="0x…">
+<label>Binance Agent ID</label><input id="inpAgentId" value="0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F" readonly>
+<label>Treasury (session fee recipient)</label><input id="inpTreasury" placeholder="0x… (default: deployer wallet)">
+<label>Presale contract</label><input id="inpMinerPresale" placeholder="0x… (from Step 3)">
+<button id="deployMiner">Deploy AgentIdMiner &amp; Sign in Wallet</button><p id="deployMinerStatus"></p>
+<label>Miner contract address</label><input id="inpMiner" placeholder="0x… (auto-filled after deploy)">
+<label>Miner deploy data (bytecode + constructor arguments)</label><textarea id="deployMinerData" readonly></textarea>
+<button id="copyDeployMiner" class="ghost">Copy Miner Deploy Data</button></div>
+<div class="card"><h3>5. Grant Mint Rights to the Miner (once only!)</h3>
+<p>Call <code>setMinter(miner)</code> on the $AID token from the owner wallet. After this, <b>only the miner contract can mint $AID</b> and this right can never be moved again.</p>
+<button id="grantMinter">Set Minter = Miner Address</button><p id="grantStatus"></p></div>
+<div class="card"><h3>6. Fund the Presale (once only!)</h3>
+<p>Call <code>allocatePresale()</code> on the miner contract. This mints the presale allocation — <b>2,100,000 $AID</b> — to the presale contract. Anyone can call it, once only, and only after Step 5 made the miner the minter. After this, the presale holds the full allocation and Epoch 1 keeps 3,150,000 $AID for miners.</p>
+<button id="allocatePresale">Allocate Presale (2,100,000 $AID)</button><p id="allocateStatus"></p></div>
+<div class="card" id="verify"><h3>7. Check Contracts After Deploy</h3>
+<p>Fill in all three addresses (or leave them auto-filled), then check. All values must match before continuing.</p>
+<button id="check">Check Token + Miner + Presale</button><p id="checkResult"></p>
+<p><small>Expected — Token: name = "Agent ID" · symbol = "AID" · decimals = 18 · MAX_SUPPLY = 21000000000000000000000000 (21,000,000) · totalMinted = 2100000000000000000000000 (2,100,000 presale allocation) · minter = miner address · owner = deployer wallet. Miner: token() = token address · agentId() = 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F · presale() = presale address · presaleAllocated() = true · currentEpoch() = 0 · ratePerDay(deployer) = 0 (no session running — rate is 0 when idle; a Free session pays 200/day, a Paid session 600/day) · SESSION_FEE() = 3000000000000000 (0.003 BNB) · UPGRADE_FEE() = 3000000000000000 (0.003 BNB) · FREE_SESSION_DURATION() = 10800 (3h) · PAID_SESSION_DURATION() = 43200 (12h) · PAID_SESSION_MULTIPLIER() = 3 · treasury() = treasury address from Step 4. Presale: token() = token address · owner() = deployer wallet · TOKENS_PER_BNB() = 210000 (1 BNB = 210,000 $AID) · ALLOCATION() = 2100000000000000000000000 (2,100,000 $AID) · balanceOf(presale) = 2100000000000000000000000 · totalSold() = 0 · saleActive() = false (not started yet).</small></p></div>
+<div class="card paid"><h3>8. Start the Presale (7 days)</h3>
+<p>Call <code>startSale()</code> on the presale contract. This starts the 7-day sale (or until 2,100,000 $AID sells out). It only works after Step 6 funded the presale. Once started, anyone can buy $AID at 1 BNB = 210,000 $AID (min 0.01 BNB, max 1 BNB per wallet) and the $AID is sent to the buyer immediately. The BNB stays in the presale contract until the sale ends — withdraw it to the treasury afterwards with <code>withdrawBNB()</code>, and reclaim any unsold $AID with <code>reclaimUnsold()</code>.</p>
+<button id="startSale">Start Presale Sale</button><p id="startSaleStatus"></p></div>
+<div class="card"><h3>9. Sourcify Verification + Summary</h3><ol>
+<li>Verify all three contracts at <code>https://sourcify.dev/#/verify</code>: pick chain 56 (BNB Mainnet), paste the contract address, upload the source <code>src/AIDToken.sol</code>, <code>src/AIDPresale.sol</code> and <code>src/AgentIdMiner.sol</code> from the repo (or this working folder).</li>
+<li>Compiler settings used at compile time (do not change): <b>solc 0.8.24, optimizer ON, runs 200</b>, default EVM (cancun), metadata hash included. It must be a <b>full match</b>.</li>
+<li>Once verified, send the summary below to Muse so it can be recorded and re-checked on-chain — only after that is the web connected to the real contracts.</li>
+</ol>
+<button id="copySummary" class="ghost">Copy Summary for Muse</button><p id="summaryStatus"></p></div>
+</section>
+<div class="card"><h3>Log</h3><div id="logPanel"></div></div>
+<section id="faq"><div class="sec-head"><div class="sec-kicker">FAQ</div><h2>Before you deploy</h2><p>Short answers to the questions that matter on mainnet.</p></div><div class="faq">
+<div class="qa"><h3>What does this page do?</h3><p>It deploys the three $AID contracts &mdash; <b>token</b>, <b>presale</b> and <b>miner</b> &mdash; on BNB Mainnet, grants mint rights to the miner, funds the presale, and checks every value on-chain. It is an <b>owner-only</b> tool.</p></div>
+<div class="qa"><h3>Why mainnet only?</h3><p>There is <b>no testnet step</b>. Every deploy here is on BNB Mainnet (chain 56), cannot be undone, and costs real BNB gas. Double-check the treasury address in Step 4.</p></div>
+<div class="qa"><h3>Where do session fees go?</h3><p><b>90% (0.0027 BNB)</b> of every paid fee — Paid sessions and upgrades — goes straight to the treasury wallet from Step 4, and <b>10% (0.0003 BNB)</b> to the referrer. Free sessions pay nothing. The treasury is set once in the constructor and <b>cannot be changed</b>.</p></div>
+<div class="qa"><h3>How does the presale work?</h3><p><b>2,100,000 $AID at 1 BNB = 210,000 $AID</b>, hard cap 10 BNB, 7 days. Buyers pay BNB to the presale contract; the BNB stays there until the sale ends, then the owner withdraws it.</p></div>
+<div class="qa"><h3>Will this page ask for my seed phrase?</h3><p><b>Never.</b> Every transaction is signed in your wallet. Never share your seed phrase or private key with anyone, including a marketplace, an agent, or a buyer.</p></div>
+</div></section>
+<footer><div class="foot"><span class="fbrand">AGENT ID <em>MINER</em> &middot; DEPLOY</span><p>Owner tool &middot; BNB Mainnet (56) &middot; Not audited &middot; Mainnet deploys cannot be undone.</p></div></footer>
+<script>
+"use strict";
+var AGENT_ID = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
+var TOKEN_BYTECODE = "608060405234801562000010575f80fd5b5060405162000e5c38038062000e5c833981016040819052620000339162000126565b80604051806040016040528060088152602001671059d95b9d08125160c21b8152506040518060400160405280600381526020016210525160ea1b8152508160039081620000829190620001f3565b506004620000918282620001f3565b5050506001600160a01b038116620000c257604051631e4fbdf760e01b81525f600482015260240160405180910390fd5b620000cd81620000d5565b5050620002bf565b600580546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b5f6020828403121562000137575f80fd5b81516001600160a01b03811681146200014e575f80fd5b9392505050565b634e487b7160e01b5f52604160045260245ffd5b600181811c908216806200017e57607f821691505b6020821081036200019d57634e487b7160e01b5f52602260045260245ffd5b50919050565b601f821115620001ee57805f5260205f20601f840160051c81016020851015620001ca5750805b601f840160051c820191505b81811015620001eb575f8155600101620001d6565b50505b505050565b81516001600160401b038111156200020f576200020f62000155565b620002278162000220845462000169565b84620001a3565b602080601f8311600181146200025d575f8415620002455750858301515b5f19600386901b1c1916600185901b178555620002b7565b5f85815260208120601f198616915b828110156200028d578886015182559484019460019091019084016200026c565b5085821015620002ab57878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b610b8f80620002cd5f395ff3fe608060405234801561000f575f80fd5b5060043610610127575f3560e01c8063715018a6116100a9578063a9059cbb1161006e578063a9059cbb1461026a578063d804415f1461027d578063dd62ed3e14610291578063f2fde38b146102c9578063fca3b5aa146102dc575f80fd5b8063715018a61461022d57806379cc6790146102355780638da5cb5b1461024857806395d89b4114610259578063a2309ff814610261575f80fd5b8063313ce567116100ef578063313ce567146101bc57806332cb6b0c146101cb57806340c10f19146101dd57806342966c68146101f257806370a0823114610205575f80fd5b806306fdde031461012b5780630754617214610149578063095ea7b31461017457806318160ddd1461019757806323b872dd146101a9575b5f80fd5b6101336102ef565b60405161014091906109d2565b60405180910390f35b60065461015c906001600160a01b031681565b6040516001600160a01b039091168152602001610140565b610187610182366004610a39565b61037f565b6040519015158152602001610140565b6002545b604051908152602001610140565b6101876101b7366004610a61565b610398565b60405160128152602001610140565b61019b6a115eec47f6cf7e3500000081565b6101f06101eb366004610a39565b6103bb565b005b6101f0610200366004610a9a565b610489565b61019b610213366004610ab1565b6001600160a01b03165f9081526020819052604090205490565b6101f0610496565b6101f0610243366004610a39565b6104a9565b6005546001600160a01b031661015c565b6101336104be565b61019b60075481565b610187610278366004610a39565b6104cd565b60065461018790600160a01b900460ff1681565b61019b61029f366004610ad1565b6001600160a01b039182165f90815260016020908152604080832093909416825291909152205490565b6101f06102d7366004610ab1565b6104da565b6101f06102ea366004610ab1565b610514565b6060600380546102fe90610b02565b80601f016020809104026020016040519081016040528092919081815260200182805461032a90610b02565b80156103755780601f1061034c57610100808354040283529160200191610375565b820191905f5260205f20905b81548152906001019060200180831161035857829003601f168201915b5050505050905090565b5f3361038c818585610609565b60019150505b92915050565b5f336103a585828561061b565b6103b0858585610697565b506001949350505050565b6006546001600160a01b031633146104075760405162461bcd60e51b815260206004820152600a6024820152693737ba1036b4b73a32b960b11b60448201526064015b60405180910390fd5b6a115eec47f6cf7e35000000816007546104219190610b3a565b11156104645760405162461bcd60e51b815260206004820152601260248201527165786365656473206d617820737570706c7960701b60448201526064016103fe565b8060075f8282546104759190610b3a565b90915550610485905082826106f4565b5050565b6104933382610728565b50565b61049e61075c565b6104a75f610789565b565b6104b482338361061b565b6104858282610728565b6060600480546102fe90610b02565b5f3361038c818585610697565b6104e261075c565b6001600160a01b03811661050b57604051631e4fbdf760e01b81525f60048201526024016103fe565b61049381610789565b61051c61075c565b600654600160a01b900460ff161561056b5760405162461bcd60e51b81526020600482015260126024820152711b5a5b9d195c88185b1c9958591e481cd95d60721b60448201526064016103fe565b6001600160a01b0381166105ba5760405162461bcd60e51b81526020600482015260166024820152756d696e746572206973207a65726f206164647265737360501b60448201526064016103fe565b600680546001600160a81b0319166001600160a01b038316908117600160a01b179091556040517f726b590ef91a8c76ad05bbe91a57ef84605276528f49cd47d787f558a4e755b6905f90a250565b61061683838360016107da565b505050565b6001600160a01b038381165f908152600160209081526040808320938616835292905220545f19811015610691578181101561068357604051637dc7a0d960e11b81526001600160a01b038416600482015260248101829052604481018390526064016103fe565b61069184848484035f6107da565b50505050565b6001600160a01b0383166106c057604051634b637e8f60e11b81525f60048201526024016103fe565b6001600160a01b0382166106e95760405163ec442f0560e01b81525f60048201526024016103fe565b6106168383836108ac565b6001600160a01b03821661071d5760405163ec442f0560e01b81525f60048201526024016103fe565b6104855f83836108ac565b6001600160a01b03821661075157604051634b637e8f60e11b81525f60048201526024016103fe565b610485825f836108ac565b6005546001600160a01b031633146104a75760405163118cdaa760e01b81523360048201526024016103fe565b600580546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b6001600160a01b0384166108035760405163e602df0560e01b81525f60048201526024016103fe565b6001600160a01b03831661082c57604051634a1406b160e11b81525f60048201526024016103fe565b6001600160a01b038085165f908152600160209081526040808320938716835292905220829055801561069157826001600160a01b0316846001600160a01b03167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b9258460405161089e91815260200190565b60405180910390a350505050565b6001600160a01b0383166108d6578060025f8282546108cb9190610b3a565b909155506109469050565b6001600160a01b0383165f90815260208190526040902054818110156109285760405163391434e360e21b81526001600160a01b038516600482015260248101829052604481018390526064016103fe565b6001600160a01b0384165f9081526020819052604090209082900390555b6001600160a01b03821661096257600280548290039055610980565b6001600160a01b0382165f9081526020819052604090208054820190555b816001600160a01b0316836001600160a01b03167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef836040516109c591815260200190565b60405180910390a3505050565b5f602080835283518060208501525f5b818110156109fe578581018301518582016040015282016109e2565b505f604082860101526040601f19601f8301168501019250505092915050565b80356001600160a01b0381168114610a34575f80fd5b919050565b5f8060408385031215610a4a575f80fd5b610a5383610a1e565b946020939093013593505050565b5f805f60608486031215610a73575f80fd5b610a7c84610a1e565b9250610a8a60208501610a1e565b9150604084013590509250925092565b5f60208284031215610aaa575f80fd5b5035919050565b5f60208284031215610ac1575f80fd5b610aca82610a1e565b9392505050565b5f8060408385031215610ae2575f80fd5b610aeb83610a1e565b9150610af960208401610a1e565b90509250929050565b600181811c90821680610b1657607f821691505b602082108103610b3457634e487b7160e01b5f52602260045260245ffd5b50919050565b8082018082111561039257634e487b7160e01b5f52601160045260245ffdfea26469706673582212204c4ade86ab38efa38e60a6ee33a58e17622d40dbdf29bf17ed9b5c0ee63665dc64736f6c63430008180033";
+var MINER_BYTECODE = "61010060405234801562000011575f80fd5b5060405162001fde38038062001fde833981016040819052620000349162000183565b60015f556001600160a01b038416620000945760405162461bcd60e51b815260206004820152601560248201527f746f6b656e206973207a65726f2061646472657373000000000000000000000060448201526064015b60405180910390fd5b6001600160a01b038316620000ec5760405162461bcd60e51b815260206004820152601860248201527f6167656e74206964206973207a65726f2061646472657373000000000000000060448201526064016200008b565b6001600160a01b038216620001445760405162461bcd60e51b815260206004820152601860248201527f7472656173757279206973207a65726f2061646472657373000000000000000060448201526064016200008b565b6001600160a01b0393841660805291831660a052821660c0521660e052620001dd565b80516001600160a01b03811681146200017e575f80fd5b919050565b5f805f806080858703121562000197575f80fd5b620001a28562000167565b9350620001b26020860162000167565b9250620001c26040860162000167565b9150620001d26060860162000167565b905092959194509250565b60805160a05160c05160e051611d646200027a5f395f818161064c01528181610f7201528181610ffe015261109001525f8181610323015261179e01525f81816105b301526106cc01525f81816106190152818161076a01528181610ac201528181610bb901528181610dec0152818161103701528181611102015281816118850152818161195a01528181611a140152611b5e0152611d645ff3fe6080604052600436106101e6575f3560e01c806374d7f93e11610108578063d14cf1c71161009d578063fa4bfde91161006d578063fa4bfde9146105d5578063fad623da146105ef578063fc0c546a14610608578063fdea8e0b1461063b578063fe978e361461066e575f80fd5b8063d14cf1c71461056e578063d73cecf814610536578063d89ad49b1461058d578063e84f43b7146105a2575f80fd5b8063a18a7bfc116100d8578063a18a7bfc146104f8578063a380cf9614610517578063a4b41c8a14610536578063c7b5a48c14610550575f80fd5b806374d7f93e1461048957806375780f42146104a557806376671808146104d057806383a84ba9146104e4575f80fd5b80634d63a9591161017e57806361d027b31161014e57806361d027b314610312578063626560031461035d578063648ec7b91461037b5780637148b49f14610475575f80fd5b80634d63a959146102b75780634e71d92d146102cc5780634fb6886a146102e057806357ed5659146102f3575f80fd5b806336c0376f116101b957806336c0376f146102735780633fead80d1461028f57806342e5f0f91461028f578063468dbf8f146102a3575f80fd5b806305b5028c146101ea578063063da86d146101ff578063130bc5231461022657806332cb6b0c14610255575b5f80fd5b6101fd6101f8366004611c42565b6106af565b005b34801561020a575f80fd5b50610213600381565b6040519081526020015b60405180910390f35b348015610231575f80fd5b50610245610240366004611c61565b610a40565b604051901515815260200161021d565b348015610260575f80fd5b506102136a115eec47f6cf7e3500000081565b34801561027e575f80fd5b50610213681b1ae4d6e2ef50000081565b34801561029a575f80fd5b50610213600a81565b3480156102ae575f80fd5b50610213600281565b3480156102c2575f80fd5b50610213612a3081565b3480156102d7575f80fd5b506101fd610a89565b6101fd6102ee366004611c87565b610cd7565b3480156102fe575f80fd5b5061021361030d366004611c61565b610f53565b34801561031d575f80fd5b506103457f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200161021d565b348015610368575f80fd5b506102136a0457bb11fdb3df8d40000081565b348015610386575f80fd5b5061040b610395366004611c61565b600260208190525f91825260409091208054600182015492820154600383015460049093015460ff80841695610100850482169564ffffffffff620100008704811696600160381b8104821696600160601b9091049091169492936001600160a01b03821693600160a01b90920481169291168a565b6040805160ff9b8c168152998b1660208b015264ffffffffff988916908a0152958716606089015295909316608087015260a08601919091526001600160a01b031660c0850152151560e0840152610100830191909152919091166101208201526101400161021d565b348015610480575f80fd5b506101fd610f70565b348015610494575f80fd5b50610213686c6b935b8bbd40000081565b3480156104b0575f80fd5b506102136104bf366004611c61565b60036020525f908152604090205481565b3480156104db575f80fd5b506102136110fe565b3480156104ef575f80fd5b506101fd6111b7565b348015610503575f80fd5b506101fd610512366004611c61565b6112a6565b348015610522575f80fd5b50610213610531366004611c61565b611373565b348015610541575f80fd5b50610213660aa87bee53800081565b34801561055b575f80fd5b506102136a01bcb13a657b263880000081565b348015610579575f80fd5b50610213610588366004611c61565b61146d565b348015610598575f80fd5b5061021361a8c081565b3480156105ad575f80fd5b506103457f000000000000000000000000000000000000000000000000000000000000000081565b3480156105e0575f80fd5b5061021366041ca7e961012f81565b3480156105fa575f80fd5b506001546102459060ff1681565b348015610613575f80fd5b506103457f000000000000000000000000000000000000000000000000000000000000000081565b348015610646575f80fd5b506103457f000000000000000000000000000000000000000000000000000000000000000081565b348015610679575f80fd5b5061068d610688366004611c61565b6114c4565b604080519415158552921515602085015291830152606082015260800161021d565b6106b761153b565b6040516370a0823160e01b81523360048201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906370a0823190602401602060405180830381865afa158015610719573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061073d9190611ca7565b5f0361075c5760405163f947691f60e01b815260040160405180910390fd5b6a115eec47f6cf7e350000007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa1580156107c4573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906107e89190611ca7565b1061080657604051633695c69d60e01b815260040160405180910390fd5b335f8181526002602052604090209061081e90611563565b805442600160381b90910464ffffffffff16111561084f57604051632ee454d160e21b815260040160405180910390fd5b5f821561088657660aa87bee538000341461087d57604051631c0338a560e31b815260040160405180910390fd5b5061a8c06108aa565b34156108a557604051631c0338a560e31b815260040160405180910390fd5b50612a305b815464ffffffffff42908116620100000266ffffffffff0000199092169190911783556108d8908290611cd2565b825470ffffffffffffffffffff000000000000001916600160381b64ffffffffff9283160264ffffffffff60601b191617600160601b42929092169190910217825582610926576001610929565b60035b826004015f6101000a81548160ff021916908360ff1602179055506001826003015f8282546109589190611cd2565b909155505081546040518415158152600160381b90910464ffffffffff169033907fb5ef2fc8e2164b3ff8ad1f0bfad8ac68677fae274111ebba96c73e0ba4ce3ec49060200160405180910390a38215610a325760028201545f9081906109d090660aa87bee538000906001600160a01b0316611735565b600286015460408051660aa87bee5380008152602081018590529081018390529294509092506001600160a01b03169033907f121ad0878cee2b88bbbf7645430550cc1e923aea4785f2523863c8cc6f0ba7f99060600160405180910390a350505b5050610a3d60015f55565b50565b6001600160a01b0381165f908152600260205260408120805462010000900464ffffffffff1615801590610a8257508054600160381b900464ffffffffff1642105b9392505050565b335f90815260026020526040812090805b6004811015610c7d57610aac33611563565b60018301545f819003610abf5750610c7d565b5f7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa158015610b1c573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610b409190611ca7565b610b55906a115eec47f6cf7e35000000611ce5565b9050805f03610b6b5750505f6001840155610c7d565b80821115610b77578091505b81856001015f828254610b8a9190611ce5565b90915550610b9a90508285611cd2565b6040516340c10f1960e01b8152336004820152602481018490529094507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906340c10f19906044015f604051808303815f87803b158015610c02575f80fd5b505af1158015610c14573d5f803e3d5ffd5b50505050610c223383611833565b84545f90600160381b900464ffffffffff164210610c4f578554600160381b900464ffffffffff16610c51565b425b8654909150600160601b900464ffffffffff168111610c7257505050610c7d565b505050600101610a9a565b50805f03610c9e576040516312d37ee560e31b815260040160405180910390fd5b60405181815233907fd8138f8a3f377c5259ca548e70e4c2de94f129f5a11036a15b69513cba2b426a9060200160405180910390a25050565b610cdf61153b565b60028210610d00576040516310370eb360e01b815260040160405180910390fd5b335f908152600260205260408120908315610d24578154610100900460ff16610d2a565b815460ff165b9050610d3a60ff82166001611cd2565b8314610d59576040516321a9b14360e01b815260040160405180910390fd5b6002831115610d7b576040516321a9b14360e01b815260040160405180910390fd5b660aa87bee5380003414610da257604051631cd8c07b60e21b815260040160405180910390fd5b5f83600114610dba57686c6b935b8bbd400000610dc5565b681b1ae4d6e2ef5000005b9050610dd033611563565b60405163079cc67960e41b8152336004820152602481018290527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906379cc6790906044015f604051808303815f87803b158015610e35575f80fd5b505af1158015610e47573d5f803e3d5ffd5b50505050845f03610e6457825460ff191660ff8516178355610e77565b825461ff00191661010060ff8616021783555b8385336001600160a01b03167fd91bf6a038086d09a784ad10958e7dd5d96bfdbc53f59bfdc6d92b8eede2bdd184604051610eb491815260200190565b60405180910390a460028301545f908190610ee090660aa87bee538000906001600160a01b0316611735565b600287015460408051660aa87bee5380008152602081018590529081018390529294509092506001600160a01b031690889033907f6a5759e12b6edbcad338820d2c30a2cdea8ba4218eca1a5f54482e6d3095600e9060600160405180910390a45050505050610f4f60015f55565b5050565b5f610f5d8261146d565b610f6a9062015180611cf8565b92915050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316610fb757604051633314fe7b60e11b815260040160405180910390fd5b60015460ff1615610fdb57604051637c2ca41f60e01b815260040160405180910390fd5b6001805460ff1916811790556040516340c10f1960e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811660048301526a01bcb13a657b263880000060248301527f000000000000000000000000000000000000000000000000000000000000000016906340c10f19906044015f604051808303815f87803b158015611078575f80fd5b505af115801561108a573d5f803e3d5ffd5b505050507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03167f7e4f3b07d71d1c8cfb5d581029a62cc3b1a57d2ca33206904208f8c0492924366a01bcb13a657b26388000006040516110f491815260200190565b60405180910390a2565b5f807f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa15801561115c573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906111809190611ca7565b90506a115eec47f6cf7e35000000811061119c57600391505090565b6111b16a0457bb11fdb3df8d40000082611d0f565b91505090565b6111bf61153b565b335f90815260036020526040812054908190036111ef576040516312d37ee560e31b815260040160405180910390fd5b335f818152600360205260408082208290555190919083908381818185875af1925050503d805f811461123d576040519150601f19603f3d011682016040523d82523d5f602084013e611242565b606091505b505090508061126457604051634033e4e360e01b815260040160405180910390fd5b60405182815233907f48da114cbb70df50064204591b1e4de39bbf228aed4dd83eb18c1957dc4c51199060200160405180910390a250506112a460015f55565b565b335f90815260026020819052604090912090810154600160a01b900460ff16156112e3576040516312cf907360e31b815260040160405180910390fd5b6001600160a01b038216158061130157506001600160a01b03821633145b1561131f576040516324da60a760e21b815260040160405180910390fd5b6002810180546001600160a81b0319166001600160a01b038416908117600160a01b1790915560405133907f5f7165288eef601591cf549e15ff19ef9060b7f71b9c115be946fa1fe7ebf68a905f90a35050565b6001600160a01b0381165f9081526002602052604081206001810154815462010000900464ffffffffff1683036113ab579392505050565b81545f90600160381b900464ffffffffff1642106113d8578254600160381b900464ffffffffff166113da565b425b8354909150600160601b900464ffffffffff1681116113fb57509392505050565b5f61140586611a05565b9050805f03611418575090949350505050565b83545f9061143490600160601b900464ffffffffff1684611ce5565b61143e9083611cf8565b90505f611449611b5a565b905080821115611457578091505b6114618286611cd2565b98975050505050505050565b6001600160a01b0381165f908152600260205260408120805462010000900464ffffffffff1615806114ae57508054600160381b900464ffffffffff164210155b156114bb57505f92915050565b610a8283611a05565b6001600160a01b0381165f90815260026020526040812080548291829182919062010000900464ffffffffff161580159061150d57508054600160381b900464ffffffffff1642105b600482015491549097600360ff9093169283149750600160381b90910464ffffffffff169550909350915050565b60025f540361155d57604051633ee5aeb560e01b815260040160405180910390fd5b60025f55565b6001600160a01b0381165f908152600260205260408120805490916201000090910464ffffffffff169003611596575050565b80545f90600160381b900464ffffffffff1642106115c3578154600160381b900464ffffffffff166115c5565b425b8254909150600160601b900464ffffffffff1681116115e357505050565b5f6115ed84611a05565b9050805f0361161b5750815464ffffffffff909116600160601b0264ffffffffff60601b1990911617905550565b82545f9061163790600160601b900464ffffffffff1684611ce5565b90505f6116448284611cf8565b90505f61164f611b5a565b9050808211156116f5575f6116648583611d0f565b9050805f0361169a575050845464ffffffffff909416600160601b0264ffffffffff60601b199094169390931790935550505050565b81876001015f8282546116ad9190611cd2565b909155505086546116cd908290600160601b900464ffffffffff16611cd2565b875464ffffffffff91909116600160601b0264ffffffffff60601b199091161787555061172c565b81866001015f8282546117089190611cd2565b9091555050855464ffffffffff60601b1916600160601b64ffffffffff8716021786555b50505050505050565b5f806001600160a01b0383161561178f576064611753600a86611cf8565b61175d9190611d0f565b6001600160a01b0384165f90815260036020526040812080549293508392909190611789908490611cd2565b90915550505b6117998185611ce5565b91505f7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316836040515f6040518083038185875af1925050503d805f8114611804576040519150601f19603f3d011682016040523d82523d5f602084013e611809565b606091505b505090508061182b57604051634033e4e360e01b815260040160405180910390fd5b509250929050565b6001600160a01b038083165f9081526002602081905260409091200154168061185b57505050565b5f6064611869600a85611cf8565b6118739190611d0f565b9050805f036118825750505050565b5f7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa1580156118df573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906119039190611ca7565b611918906a115eec47f6cf7e35000000611ce5565b9050805f03611928575050505050565b80821115611934578091505b6040516340c10f1960e01b81526001600160a01b038481166004830152602482018490527f000000000000000000000000000000000000000000000000000000000000000016906340c10f19906044015f604051808303815f87803b15801561199b575f80fd5b505af11580156119ad573d5f803e3d5ffd5b50505050826001600160a01b0316856001600160a01b03167f0a721ab4682ceb61c7e4d264ef879fc419a6d764b136e7d96ef54b2053c75673846040516119f691815260200190565b60405180910390a35050505050565b5f6a115eec47f6cf7e350000007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa158015611a6e573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190611a929190611ca7565b10611a9e57505f919050565b6001600160a01b0382165f908152600260205260408120805490916201000090910464ffffffffff169003611ad557505f92915050565b5f611ade6110fe565b6004830154835491925060ff908116915f9184918491611b0a91600191161b66041ca7e961012f611cf8565b611b149190611cf8565b8554911c915083908390611b3b90600161010090910460ff161b66041ca7e961012f611cf8565b611b459190611cf8565b611b50911c82611cd2565b9695505050505050565b5f807f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a2309ff86040518163ffffffff1660e01b8152600401602060405180830381865afa158015611bb8573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190611bdc9190611ca7565b90506a115eec47f6cf7e350000008110611bf7575f91505090565b5f611c0d6a0457bb11fdb3df8d40000083611d0f565b9050816a0457bb11fdb3df8d400000611c27836001611cd2565b611c319190611cf8565b611c3b9190611ce5565b9250505090565b5f60208284031215611c52575f80fd5b81358015158114610a82575f80fd5b5f60208284031215611c71575f80fd5b81356001600160a01b0381168114610a82575f80fd5b5f8060408385031215611c98575f80fd5b50508035926020909101359150565b5f60208284031215611cb7575f80fd5b5051919050565b634e487b7160e01b5f52601160045260245ffd5b80820180821115610f6a57610f6a611cbe565b81810381811115610f6a57610f6a611cbe565b8082028115828204841417610f6a57610f6a611cbe565b5f82611d2957634e487b7160e01b5f52601260045260245ffd5b50049056fea2646970667358221220083690a4cd31baa0fab67bb63b09e4ec7f30d596d39778e99cebe5827a53545364736f6c63430008180033";
+var PRESALE_BYTECODE = "60a060405234801561000f575f80fd5b50604051610ed5380380610ed583398101604081905261002e9161013d565b806001600160a01b03811661005d57604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b610066816100d3565b50600180556001600160a01b0382166100c15760405162461bcd60e51b815260206004820152601560248201527f746f6b656e206973207a65726f206164647265737300000000000000000000006044820152606401610054565b506001600160a01b031660805261016e565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b80516001600160a01b0381168114610138575f80fd5b919050565b5f806040838503121561014e575f80fd5b61015783610122565b915061016560208401610122565b90509250929050565b608051610d336101a25f395f81816103b201528181610418015281816104ae0152818161091a0152610a590152610d335ff3fe608060405260043610610147575f3560e01c806378e97925116100b3578063b66a0e5d1161006d578063b66a0e5d14610322578063c5c4744c14610336578063d3a5776c14610348578063db81b27814610367578063f2fde38b14610382578063fc0c546a146103a1575f80fd5b806378e979251461028e578063889646ea146102a35780638da5cb5b146102c15780639106d7ba146102f15780639b8906ae14610306578063a6f2ae3a1461031a575f80fd5b80635218e635116101045780635218e635146101e3578063522fe98e146101fe57806355234ec0146102295780635c474f9e1461023d57806368428a1b14610266578063715018a61461027a575f80fd5b8063155af5421461014b5780631be05289146101615780631d111d131461018a57806325b40a041461019e5780633197cbb6146101b45780633af96b90146101c9575b5f80fd5b348015610156575f80fd5b5061015f6103d4565b005b34801561016c575f80fd5b5061017762093a8081565b6040519081526020015b60405180910390f35b348015610195575f80fd5b5061015f6105f7565b3480156101a9575f80fd5b506101776203345081565b3480156101bf575f80fd5b5061017760035481565b3480156101d4575f80fd5b50610177662386f26fc1000081565b3480156101ee575f80fd5b50610177678ac7230489e8000081565b348015610209575f80fd5b50610177610218366004610c32565b60066020525f908152604090205481565b348015610234575f80fd5b50610177610719565b348015610248575f80fd5b506004546102569060ff1681565b6040519015158152602001610181565b348015610271575f80fd5b50610256610738565b348015610285575f80fd5b5061015f61076a565b348015610299575f80fd5b5061017760025481565b3480156102ae575f80fd5b506101776a01bcb13a657b263880000081565b3480156102cc575f80fd5b505f546001600160a01b03165b6040516001600160a01b039091168152602001610181565b3480156102fc575f80fd5b5061017760055481565b348015610311575f80fd5b5061025661077b565b61015f6107ab565b34801561032d575f80fd5b5061015f610a0b565b348015610341575f80fd5b5047610177565b348015610353575f80fd5b50610177610362366004610c5f565b610b3c565b348015610372575f80fd5b50610177670de0b6b3a764000081565b34801561038d575f80fd5b5061015f61039c366004610c32565b610b50565b3480156103ac575f80fd5b506102d97f000000000000000000000000000000000000000000000000000000000000000081565b6103dc610b8d565b6103e461077b565b61040157604051636438180360e01b815260040160405180910390fd5b6040516370a0823160e01b81523060048201525f907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906370a0823190602401602060405180830381865afa158015610465573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906104899190610c76565b9050805f036104ab57604051630686827b60e51b815260040160405180910390fd5b5f7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663a9059cbb6104ec5f546001600160a01b031690565b6040516001600160e01b031960e084901b1681526001600160a01b039091166004820152602481018590526044016020604051808303815f875af1158015610536573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061055a9190610c8d565b9050806105a65760405162461bcd60e51b81526020600482015260156024820152741d1bdad95b881d1c985b9cd9995c8819985a5b1959605a1b60448201526064015b60405180910390fd5b5f546001600160a01b03166001600160a01b03167fb42c9fecfb68f9bf84886f05b85865be2fda69a3ec869651d1320d8f528be6bb836040516105eb91815260200190565b60405180910390a25050565b6105ff610b8d565b610607610bb9565b61060f61077b565b61062c57604051636438180360e01b815260040160405180910390fd5b475f81900361064e57604051630686827b60e51b815260040160405180910390fd5b5f80546040516001600160a01b039091169083908381818185875af1925050503d805f8114610698576040519150601f19603f3d011682016040523d82523d5f602084013e61069d565b606091505b50509050806106bf57604051635b10c46760e01b815260040160405180910390fd5b5f546001600160a01b03166001600160a01b03167f7c4edcc3026207c9c2f7a4e83c9abe6997a2f9a05f8d6d5b5a53e3222962f6478360405161070491815260200190565b60405180910390a2505061071760018055565b565b5f6005546a01bcb13a657b26388000006107339190610cc0565b905090565b6004545f9060ff16801561074e57506003544211155b801561073357506a01bcb13a657b263880000060055410905090565b610772610b8d565b6107175f610be3565b6004545f9060ff168015610733575060035442118061073357506a01bcb13a657b26388000006005541015905090565b6107b3610bb9565b60045460ff166107d6576040516316851a3760e11b815260040160405180910390fd5b6003544211806107f357506a01bcb13a657b263880000060055410155b1561081157604051630bd8a3eb60e01b815260040160405180910390fd5b662386f26fc1000034101561083957604051637a61546760e11b815260040160405180910390fd5b335f90815260066020526040902054670de0b6b3a76400009061085d903490610cd3565b111561087c57604051633f331dcb60e01b815260040160405180910390fd5b5f61088634610b3c565b90506a01bcb13a657b2638800000816005546108a29190610cd3565b11156108c1576040516374a5d1f560e01b815260040160405180910390fd5b335f90815260066020526040812080543492906108df908490610cd3565b925050819055508060055f8282546108f79190610cd3565b909155505060405163a9059cbb60e01b8152336004820152602481018290525f907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063a9059cbb906044016020604051808303815f875af1158015610968573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061098c9190610c8d565b9050806109d35760405162461bcd60e51b81526020600482015260156024820152741d1bdad95b881d1c985b9cd9995c8819985a5b1959605a1b604482015260640161059d565b604080513481526020810184905233917ff761777482b4b40d2bcc0d050cfba6829900a2d8b3484bd0244ec0feeb3db5049101610704565b610a13610b8d565b60045460ff1615610a375760405163291659fd60e11b815260040160405180910390fd5b6040516370a0823160e01b81523060048201526a01bcb13a657b2638800000907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906370a0823190602401602060405180830381865afa158015610aa6573d5f803e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610aca9190610c76565b1015610ae957604051636af784dd60e11b815260040160405180910390fd5b6004805460ff19166001179055426002819055610b0a9062093a8090610cd3565b60038190556002546040517f87d03dcfa12666a6f670d52387c414c3147775a8cc623d78088c0e23b4a90346905f90a3565b5f610b4a6203345083610ce6565b92915050565b610b58610b8d565b6001600160a01b038116610b8157604051631e4fbdf760e01b81525f600482015260240161059d565b610b8a81610be3565b50565b5f546001600160a01b031633146107175760405163118cdaa760e01b815233600482015260240161059d565b600260015403610bdc57604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b5f60208284031215610c42575f80fd5b81356001600160a01b0381168114610c58575f80fd5b9392505050565b5f60208284031215610c6f575f80fd5b5035919050565b5f60208284031215610c86575f80fd5b5051919050565b5f60208284031215610c9d575f80fd5b81518015158114610c58575f80fd5b634e487b7160e01b5f52601160045260245ffd5b81810381811115610b4a57610b4a610cac565b80820180821115610b4a57610b4a610cac565b8082028115828204841417610b4a57610b4a610cac56fea264697066735822122006d41a679b06f6c0fa7f328f01fb05508e5a5e19c0496398f705634dc7ebc10c64736f6c63430008180033";
+var SEL = { setMinter:"fca3b5aa", minter:"07546172", maxSupply:"32cb6b0c", totalMinted:"a2309ff8", totalSupply:"18160ddd", name:"06fdde03", symbol:"95d89b41", decimals:"313ce567", owner:"8da5cb5b", token:"fc0c546a", agentId:"e84f43b7", currentEpoch:"76671808", ratePerDay:"57ed5659", ratePerSecond:"d14cf1c7", pendingAccrued:"a380cf96", balanceOf:"70a08231", sessionFee:"d73cecf8", upgradeFee:"a4b41c8a", freeSessionDuration:"4d63a959", paidSessionDuration:"d89ad49b", paidSessionMultiplier:"063da86d", treasury:"61d027b3", allocatePresale:"7148b49f", presale:"fdea8e0b", presaleAllocated:"fad623da", presaleAllocation:"c7b5a48c", startSale:"b66a0e5d", totalSold:"9106d7ba", remaining:"55234ec0", saleActive:"68428a1b", totalRaised:"c5c4744c", tokensPerBnb:"25b40a04", allocation:"889646ea", saleStarted:"5c474f9e" };
+var provider = null, account = null, tokenTx = "", presaleTx = "", minerTx = "", grantTx = "", allocateTx = "", startSaleTx = "";
+function pickProvider(){ if (window.okxwallet && window.okxwallet.request) return window.okxwallet; if (window.ethereum && window.ethereum.request) return window.ethereum; return null; }
+function $(id){ return document.getElementById(id); }
+function setText(id, t){ $(id).textContent = t; }
+function log(msg){ var el = $("logPanel"); el.textContent += msg + "\n"; }
+function pad32hex(hex){ hex = hex.replace(/^0x/, ""); while (hex.length < 64) hex = "0" + hex; return hex; }
+function showAccount(){
+  if (!account) { setText("account", "Not connected yet."); return; }
+  setText("account", "Connected: " + account);
+  $("inpOwner").value = account;
+  $("inpPresaleOwner").value = account;
+  if (!$("inpTreasury").value) $("inpTreasury").value = account;
+  if (provider) provider.request({method:"eth_chainId"}).then(function(cid){ setText("chainMsg", "Chain ID: " + parseInt(cid, 16) + (cid === "0x38" ? " (BNB Mainnet)" : " — switch to 56 for BNB Mainnet")); }).catch(function(){});
+}
+function switchChain(chainId, name){
+  if (!provider) { setText("chainMsg", "No wallet found."); return; }
+  provider.request({method:"wallet_switchEthereumChain", params:[{chainId: chainId}]}).then(function(){ setText("chainMsg", "Switched to " + name + "."); showAccount(); }).catch(function(e){ setText("chainMsg", "Failed to switch chain: " + (e && e.message ? e.message : e)); });
+}
+async function sendTx(to, data, value){
+  var tx = { from: account, to: to, data: data, value: value || "0x0" };
+  return provider.request({method:"eth_sendTransaction", params:[tx]});
+}
+function pollReceipt(hash, onDone){
+  var tries = 0;
+  var iv = setInterval(function(){
+    tries++;
+    provider.request({method:"eth_getTransactionReceipt", params:[hash]}).then(function(r){ if (r) { clearInterval(iv); onDone(r); } else if (tries > 100) { clearInterval(iv); onDone(null); } }).catch(function(){ if (tries > 100) { clearInterval(iv); onDone(null); } });
+  }, 3000);
+}
+function ethCall(to, data){
+  return provider.request({method:"eth_call", params:[{to: to, data: data}, "latest"]});
+}
+function decUint(res){ return BigInt(res).toString(); }
+function decAddr(res){ return "0x" + res.slice(-40); }
+function decStr(res){
+  try {
+    var hex = res.replace(/^0x/, "");
+    var len = parseInt(hex.slice(64, 128), 16);
+    var dataHex = hex.slice(128, 128 + len * 2);
+    var out = "";
+    for (var i = 0; i < dataHex.length; i += 2) out += String.fromCharCode(parseInt(dataHex.substr(i, 2), 16));
+    return out;
+  } catch(e){ return "?"; }
+}
+function buildTokenDeployData(){ return "0x" + TOKEN_BYTECODE + pad32hex(account); }
+function buildPresaleDeployData(tokenAddr, ownerAddr){ return "0x" + PRESALE_BYTECODE + pad32hex(tokenAddr) + pad32hex(ownerAddr); }
+function buildMinerDeployData(tokenAddr, treasuryAddr, presaleAddr){ return "0x" + MINER_BYTECODE + pad32hex(tokenAddr) + pad32hex(AGENT_ID) + pad32hex(treasuryAddr) + pad32hex(presaleAddr); }
+function refreshDeployData(){
+  if (account) $("deployTokenData").value = buildTokenDeployData();
+  var t = $("inpMinerToken").value.trim();
+  var tr = $("inpTreasury").value.trim();
+  var ps = $("inpMinerPresale").value.trim();
+  if (/^0x[0-9a-fA-F]{40}$/.test(t) && /^0x[0-9a-fA-F]{40}$/.test(tr) && /^0x[0-9a-fA-F]{40}$/.test(ps)) $("deployMinerData").value = buildMinerDeployData(t, tr, ps);
+  var pt = $("inpPresaleToken").value.trim();
+  var po = $("inpPresaleOwner").value.trim();
+  if (/^0x[0-9a-fA-F]{40}$/.test(pt) && /^0x[0-9a-fA-F]{40}$/.test(po)) $("deployPresaleData").value = buildPresaleDeployData(pt, po);
+}
+(function init(){
+  provider = pickProvider();
+  if (!provider) { setText("account", "No wallet found in this browser."); }
+  $("connect").onclick = async function(){
+    if (!provider) { setText("account", "No wallet found."); return; }
+    try { var accs = await provider.request({method:"eth_requestAccounts"}); account = accs[0]; showAccount(); refreshDeployData(); log("Connected: " + account); } catch(e){ setText("account", "Connection failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("switchMainnet").onclick = function(){ switchChain("0x38", "BNB Mainnet (56)"); };
+  $("copyDeployToken").onclick = function(){ refreshDeployData(); $("deployTokenData").select(); document.execCommand("copy"); setText("deployTokenStatus", "Token deploy data copied."); };
+  $("copyDeployPresale").onclick = function(){ refreshDeployData(); $("deployPresaleData").select(); document.execCommand("copy"); setText("deployPresaleStatus", "Presale deploy data copied."); };
+  $("copyDeployMiner").onclick = function(){ refreshDeployData(); $("deployMinerData").select(); document.execCommand("copy"); setText("deployMinerStatus", "Miner deploy data copied."); };
+  $("deployToken").onclick = async function(){
+    if (!provider || !account) { setText("deployTokenStatus", "Connect your wallet first."); return; }
+    setText("deployTokenStatus", "Sending token deploy — confirm in your wallet...");
+    try {
+      var hash = await sendTx(null, buildTokenDeployData(), "0x0");
+      tokenTx = hash;
+      log("Token deploy sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.contractAddress) { setText("deployTokenStatus", "Token deployed. $AID address: " + r.contractAddress); $("inpToken").value = r.contractAddress; $("inpMinerToken").value = r.contractAddress; $("inpPresaleToken").value = r.contractAddress; refreshDeployData(); log("Token $AID: " + r.contractAddress); }
+        else { setText("deployTokenStatus", "Receipt not found after ~5 minutes. Check the tx on BscScan, then enter the token address manually."); }
+      });
+    } catch(e){ setText("deployTokenStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("deployPresale").onclick = async function(){
+    if (!provider || !account) { setText("deployPresaleStatus", "Connect your wallet first."); return; }
+    var tokenAddr = $("inpPresaleToken").value.trim();
+    var ownerAddr = $("inpPresaleOwner").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(tokenAddr)) { setText("deployPresaleStatus", "Enter the $AID token address first (Step 2)."); return; }
+    if (!/^0x[0-9a-fA-F]{40}$/.test(ownerAddr)) { setText("deployPresaleStatus", "Enter the presale owner address first."); return; }
+    setText("deployPresaleStatus", "Sending presale deploy — confirm in your wallet...");
+    try {
+      var hash = await sendTx(null, buildPresaleDeployData(tokenAddr, ownerAddr), "0x0");
+      presaleTx = hash;
+      log("Presale deploy sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.contractAddress) { setText("deployPresaleStatus", "Presale deployed. Presale address: " + r.contractAddress); $("inpPresale").value = r.contractAddress; $("inpMinerPresale").value = r.contractAddress; refreshDeployData(); log("Presale: " + r.contractAddress); }
+        else { setText("deployPresaleStatus", "Receipt not found after ~5 minutes. Check the tx on BscScan, then enter the presale address manually."); }
+      });
+    } catch(e){ setText("deployPresaleStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("deployMiner").onclick = async function(){
+    if (!provider || !account) { setText("deployMinerStatus", "Connect your wallet first."); return; }
+    var tokenAddr = $("inpMinerToken").value.trim();
+    var treasuryAddr = $("inpTreasury").value.trim();
+    var presaleAddr = $("inpMinerPresale").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(tokenAddr)) { setText("deployMinerStatus", "Enter the $AID token address first (Step 2)."); return; }
+    if (!/^0x[0-9a-fA-F]{40}$/.test(treasuryAddr)) { setText("deployMinerStatus", "Enter the treasury address first — session fees go to this address and it cannot be changed after deploy."); return; }
+    if (!/^0x[0-9a-fA-F]{40}$/.test(presaleAddr)) { setText("deployMinerStatus", "Enter the presale address first (Step 3)."); return; }
+    setText("deployMinerStatus", "Sending miner deploy — confirm in your wallet...");
+    try {
+      var hash = await sendTx(null, buildMinerDeployData(tokenAddr, treasuryAddr, presaleAddr), "0x0");
+      minerTx = hash;
+      log("Miner deploy sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.contractAddress) { setText("deployMinerStatus", "Miner deployed. Miner address: " + r.contractAddress); $("inpMiner").value = r.contractAddress; log("Miner: " + r.contractAddress); }
+        else { setText("deployMinerStatus", "Receipt not found after ~5 minutes. Check the tx on BscScan, then enter the miner address manually."); }
+      });
+    } catch(e){ setText("deployMinerStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("grantMinter").onclick = async function(){
+    if (!provider || !account) { setText("grantStatus", "Connect your wallet first."); return; }
+    var tokenAddr = $("inpToken").value.trim();
+    var minerAddr = $("inpMiner").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(tokenAddr) || !/^0x[0-9a-fA-F]{40}$/.test(minerAddr)) { setText("grantStatus", "Enter the token address (Step 2) and miner address (Step 3) first."); return; }
+    var data = "0x" + SEL.setMinter + pad32hex(minerAddr);
+    setText("grantStatus", "Sending setMinter — confirm in your wallet. This can only be done ONCE.");
+    try {
+      var hash = await sendTx(tokenAddr, data, "0x0");
+      grantTx = hash;
+      log("setMinter sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.status === "0x1") { setText("grantStatus", "setMinter succeeded. Tx: " + hash + ". Only the miner can mint $AID now. Continue to Step 6 to fund the presale, then Step 7 to check."); log("setMinter succeeded: " + hash); }
+        else { setText("grantStatus", "Receipt not found / tx failed. Check the tx on BscScan: " + hash); }
+      });
+    } catch(e){ setText("grantStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("allocatePresale").onclick = async function(){
+    if (!provider || !account) { setText("allocateStatus", "Connect your wallet first."); return; }
+    var minerAddr = $("inpMiner").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(minerAddr)) { setText("allocateStatus", "Enter the miner address first (Step 4)."); return; }
+    var data = "0x" + SEL.allocatePresale;
+    setText("allocateStatus", "Sending allocatePresale — confirm in your wallet. This mints 2,100,000 $AID to the presale contract, once only.");
+    try {
+      var hash = await sendTx(minerAddr, data, "0x0");
+      allocateTx = hash;
+      log("allocatePresale sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.status === "0x1") { setText("allocateStatus", "allocatePresale succeeded. Tx: " + hash + ". The presale now holds 2,100,000 $AID. Continue to Step 7 to check."); log("allocatePresale succeeded: " + hash); }
+        else { setText("allocateStatus", "Receipt not found / tx failed. Check the tx on BscScan: " + hash); }
+      });
+    } catch(e){ setText("allocateStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("startSale").onclick = async function(){
+    if (!provider || !account) { setText("startSaleStatus", "Connect your wallet first."); return; }
+    var presaleAddr = $("inpPresale").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(presaleAddr)) { setText("startSaleStatus", "Enter the presale address first (Step 3)."); return; }
+    var data = "0x" + SEL.startSale;
+    setText("startSaleStatus", "Sending startSale — confirm in your wallet. This starts the 7-day presale.");
+    try {
+      var hash = await sendTx(presaleAddr, data, "0x0");
+      startSaleTx = hash;
+      log("startSale sent, tx: " + hash + ". Waiting for receipt...");
+      pollReceipt(hash, function(r){
+        if (r && r.status === "0x1") { setText("startSaleStatus", "Presale started. Tx: " + hash + ". The 7-day sale is now live at 1 BNB = 210,000 $AID."); log("startSale succeeded: " + hash); }
+        else { setText("startSaleStatus", "Receipt not found / tx failed. Check the tx on BscScan: " + hash); }
+      });
+    } catch(e){ setText("startSaleStatus", "Failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("check").onclick = async function(){
+    var tokenAddr = $("inpToken").value.trim();
+    var minerAddr = $("inpMiner").value.trim();
+    var presaleAddr = $("inpPresale").value.trim();
+    var treasuryAddr = $("inpTreasury").value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(tokenAddr) || !/^0x[0-9a-fA-F]{40}$/.test(minerAddr) || !/^0x[0-9a-fA-F]{40}$/.test(presaleAddr)) { setText("checkResult", "Fill in the token, miner and presale addresses first."); return; }
+    setText("checkResult", "Checking...");
+    try {
+      var tName = decStr(await ethCall(tokenAddr, "0x" + SEL.name));
+      var tSym = decStr(await ethCall(tokenAddr, "0x" + SEL.symbol));
+      var tDec = decUint(await ethCall(tokenAddr, "0x" + SEL.decimals));
+      var tMax = decUint(await ethCall(tokenAddr, "0x" + SEL.maxSupply));
+      var tMinted = decUint(await ethCall(tokenAddr, "0x" + SEL.totalMinted));
+      var tMinter = decAddr(await ethCall(tokenAddr, "0x" + SEL.minter));
+      var tOwner = decAddr(await ethCall(tokenAddr, "0x" + SEL.owner));
+      var mToken = decAddr(await ethCall(minerAddr, "0x" + SEL.token));
+      var mAgent = decAddr(await ethCall(minerAddr, "0x" + SEL.agentId));
+      var mPresale = decAddr(await ethCall(minerAddr, "0x" + SEL.presale));
+      var mPresaleAllocated = decUint(await ethCall(minerAddr, "0x" + SEL.presaleAllocated));
+      var mEpoch = decUint(await ethCall(minerAddr, "0x" + SEL.currentEpoch));
+      var mRate = decUint(await ethCall(minerAddr, "0x" + SEL.ratePerDay + pad32hex(account || "0x0000000000000000000000000000000000000000")));
+      var mFee = decUint(await ethCall(minerAddr, "0x" + SEL.sessionFee));
+      var mUpgradeFee = decUint(await ethCall(minerAddr, "0x" + SEL.upgradeFee));
+      var mFreeDur = decUint(await ethCall(minerAddr, "0x" + SEL.freeSessionDuration));
+      var mPaidDur = decUint(await ethCall(minerAddr, "0x" + SEL.paidSessionDuration));
+      var mPaidMult = decUint(await ethCall(minerAddr, "0x" + SEL.paidSessionMultiplier));
+      var mTreasury = decAddr(await ethCall(minerAddr, "0x" + SEL.treasury));
+      var pToken = decAddr(await ethCall(presaleAddr, "0x" + SEL.token));
+      var pOwner = decAddr(await ethCall(presaleAddr, "0x" + SEL.owner));
+      var pRate = decUint(await ethCall(presaleAddr, "0x" + SEL.tokensPerBnb));
+      var pAllocation = decUint(await ethCall(presaleAddr, "0x" + SEL.allocation));
+      var pBalance = decUint(await ethCall(tokenAddr, "0x" + SEL.balanceOf + pad32hex(presaleAddr)));
+      var pTotalSold = decUint(await ethCall(presaleAddr, "0x" + SEL.totalSold));
+      var pSaleActive = decUint(await ethCall(presaleAddr, "0x" + SEL.saleActive));
+      var ok = (tName === "Agent ID" && tSym === "AID" && tDec === "18" && tMax === "21000000000000000000000000" && tMinted === "2100000000000000000000000" && tMinter.toLowerCase() === minerAddr.toLowerCase() && tOwner.toLowerCase() === (account || "").toLowerCase() && mToken.toLowerCase() === tokenAddr.toLowerCase() && mAgent.toLowerCase() === AGENT_ID.toLowerCase() && mPresale.toLowerCase() === presaleAddr.toLowerCase() && mPresaleAllocated === "1" && mEpoch === "0" && mRate === "0" && mFee === "3000000000000000" && mUpgradeFee === "3000000000000000" && mFreeDur === "10800" && mPaidDur === "43200" && mPaidMult === "3" && mTreasury.toLowerCase() === treasuryAddr.toLowerCase() && pToken.toLowerCase() === tokenAddr.toLowerCase() && pOwner.toLowerCase() === (account || "").toLowerCase() && pRate === "210000" && pAllocation === "2100000000000000000000000" && pBalance === "2100000000000000000000000" && pTotalSold === "0" && pSaleActive === "0");
+      setText("checkResult", (ok ? "ALL MATCH. " : "SOMETHING DOES NOT MATCH — do not continue. ") + "Token: name=" + tName + " | symbol=" + tSym + " | decimals=" + tDec + " | MAX_SUPPLY=" + tMax + " | totalMinted=" + tMinted + " | minter=" + tMinter + " | owner=" + tOwner + ". Miner: token()=" + mToken + " | agentId()=" + mAgent + " | presale()=" + mPresale + " | presaleAllocated()=" + mPresaleAllocated + " | currentEpoch()=" + mEpoch + " | ratePerDay(deployer)=" + mRate + " | SESSION_FEE()=" + mFee + " | UPGRADE_FEE()=" + mUpgradeFee + " | FREE_SESSION_DURATION()=" + mFreeDur + " | PAID_SESSION_DURATION()=" + mPaidDur + " | PAID_SESSION_MULTIPLIER()=" + mPaidMult + " | treasury()=" + mTreasury + ". Presale: token()=" + pToken + " | owner()=" + pOwner + " | TOKENS_PER_BNB()=" + pRate + " | ALLOCATION()=" + pAllocation + " | balanceOf(presale)=" + pBalance + " | totalSold()=" + pTotalSold + " | saleActive()=" + pSaleActive);
+      log("Token+miner+presale check: " + (ok ? "ALL MATCH" : "MISMATCH"));
+    } catch(e){ setText("checkResult", "Check failed: " + (e && e.message ? e.message : e)); }
+  };
+  $("copySummary").onclick = function(){
+    var tokenAddr = $("inpToken").value.trim() || "(not deployed yet)";
+    var presaleAddr = $("inpPresale").value.trim() || "(not deployed yet)";
+    var minerAddr = $("inpMiner").value.trim() || "(not deployed yet)";
+    var treasuryAddr = $("inpTreasury").value.trim() || "(not set)";
+    var txt = "Agent ID Miner deploy:\nToken $AID: " + tokenAddr + "\nPresale: " + presaleAddr + "\nMiner: " + minerAddr + "\nAgent ID: " + AGENT_ID + "\nTreasury (session fees): " + treasuryAddr + "\nDeployer/token owner: " + (account || "(not connected)") + "\nToken deploy tx: " + (tokenTx || "(none yet)") + "\nPresale deploy tx: " + (presaleTx || "(none yet)") + "\nMiner deploy tx: " + (minerTx || "(none yet)") + "\nsetMinter tx: " + (grantTx || "(none yet)") + "\nallocatePresale tx: " + (allocateTx || "(none yet)") + "\nstartSale tx: " + (startSaleTx || "(none yet)") + "\nMax supply: 21,000,000 $AID | Epochs: 4 x 5,250,000 | Rate: 100 $AID/day/machine (epoch 1) | Free 3h x1 (0 BNB, repeatable) / Paid 12h x3 (0.003 BNB) | Paid fees: 90% to treasury (0.0027), 10% to referrer (0.0003) | Referral +10% on claim | Upgrades: Turbo 500 / Quantum 2,000 $AID (burned) + 0.003 BNB each | Presale: 2,100,000 $AID at 1 BNB = 210,000 $AID, hard cap 10 BNB, min 0.01 / max 1 BNB per wallet, 7 days, BNB held in presale contract until sale ends";
+    var ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); setText("summaryStatus", "Summary copied. Send it to Muse so it can be recorded and verified."); } catch(e){ setText("summaryStatus", txt); }
+    document.body.removeChild(ta);
+  };
+})();
+</script>
+</body></html>
