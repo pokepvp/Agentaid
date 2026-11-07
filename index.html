@@ -941,7 +941,7 @@
               <li><b>Connect your Agent ID</b> — one tap in the console creates a simulated identity. No wallet needed.</li>
               <li><b>Start a machine</b> — each of your 2 slots runs a 24-hour session. The first session is free; later sessions cost 0.003 BNB from your simulated BNB wallet (top up anytime, it's play money).</li>
               <li><b>Claim $AID</b> — machines accrue every second. Claim whenever you like, per slot or all at once.</li>
-              <li><b>Upgrade</b> — spend mined $AID: Turbo Miner ×2 for 500 $AID, Quantum Rig ×4 for 2,000 $AID.</li>
+              <li><b>Upgrade</b> — spend mined $AID: Turbo Miner ×2 for 500 $AID, Quantum Rig ×4 for 2,000 $AID. Unclaimed $AID on your machines counts too — tapping Upgrade claims it for you first.</li>
               <li><b>Invite</b> — share your referral code and earn +10% of what invitees mine, minted on top, plus 10% of their session fees.</li>
             </ol>
             <p>Progress is saved in this browser only. The numbers match the real contract's design, so what you learn here carries over when mining opens.</p>
@@ -1162,8 +1162,9 @@
         var startBtn = m.running
           ? '<button class="btn btn-line btn-sm" data-act="start" data-i="' + i + '">Running</button>'
           : '<button class="btn btn-term btn-sm" data-act="start" data-i="' + i + '">Start Mining</button>';
+        var spendable = state.balance + state.machines.reduce(function (s, mm) { return s + mm.accrued; }, 0);
         var upgradeBtn = next
-          ? '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade</button>'
+          ? '<button class="btn ' + (spendable >= next.cost ? "btn-term" : "btn-line") + ' btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade</button>'
           : '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Max Tier</button>';
 
         var accent = i === 0 ? "#f0b90b" : "#4ade80";
@@ -1347,8 +1348,21 @@
         var m = state.machines[i];
         var next = TIERS[m.tier + 1];
         if (!next) { toast("Max tier — this machine is fully upgraded."); return; }
+        // Fold in everything already mined but not claimed yet, so the $AID
+        // sitting on the machines counts toward the upgrade instead of the
+        // button refusing while the card shows a growing unclaimed pile.
+        var folded = 0;
+        state.machines.forEach(function (mm) {
+          if (mm.accrued > 0.0001) { folded += mm.accrued; mm.accrued = 0; }
+        });
+        if (folded > 0) {
+          state.balance += folded;
+          state.totalEarned += folded;
+          addLog('Claimed <span class="g">' + fmt(folded) + " $AID</span> toward the upgrade.");
+        }
         if (state.balance < next.cost) {
-          toast("Need " + fmt0(next.cost) + " $AID for " + next.name + " — you have " + fmt(state.balance) + ". Claim more first.");
+          toast("Need " + fmt0(next.cost) + " $AID for " + next.name + " — you have " + fmt(state.balance) + ". Keep mining.");
+          save(); render();
           return;
         }
         state.balance -= next.cost;
