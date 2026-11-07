@@ -469,6 +469,16 @@
       footer { border-top: 1.5px solid var(--line); margin-top: 26px; padding: 26px 0 calc(40px + env(safe-area-inset-bottom, 0px)); }
       footer p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; margin: 0 0 8px; max-width: 78ch; }
       footer b { color: var(--ink); }
+      .social-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
+      .social-link {
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+        padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 999px;
+        background: var(--card); color: var(--ink); text-decoration: none;
+        font-weight: 800; font-size: 14px; touch-action: manipulation;
+      }
+      .social-link:hover { border-color: var(--ink-soft); }
+      .social-link:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
+      .social-link .handle { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--ink-soft); }
       .toast {
         position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
         background: #131711; color: #f2f5ec; padding: 11px 18px; border-radius: 10px;
@@ -623,6 +633,7 @@
         <a href="#roadmap">Roadmap</a>
         <a href="#docs">Docs</a>
         <a href="#whitepaper">Whitepaper</a>
+        <a href="https://x.com/AidAgenticMiner" target="_blank" rel="noopener noreferrer" aria-label="Agent ID Miner on X — @AidAgenticMiner (opens in a new tab)"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex:none;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z"/></svg><span style="margin-left:7px;">@AidAgenticMiner</span></a>
         <a href="#referral" class="nav-cta">Referral</a>
       </div>
     </header>
@@ -1101,6 +1112,13 @@
       </section>
 
       <footer>
+        <div class="social-row">
+          <a class="social-link" href="https://x.com/AidAgenticMiner" target="_blank" rel="noopener noreferrer" aria-label="Agent ID Miner on X — @AidAgenticMiner (opens in a new tab)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z"/></svg>
+            <span>Follow on X</span>
+            <span class="handle">@AidAgenticMiner</span>
+          </a>
+        </div>
         <p>
           <b>Simulation notice:</b> Agent ID Miner is a game. $AID is a simulated token with
           <b>no real value</b> — not crypto, not on any blockchain, cannot be bought, sold, or withdrawn.
