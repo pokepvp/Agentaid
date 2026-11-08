@@ -15,15 +15,10 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-    <script>
-      // Fallback CDNs for the wallet library — on a slow connection the first
-      // CDN can time out; without ethers nothing on the page can connect.
-      if (!window.ethers) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.min.js"><\/script>');
-    </script>
-    <script>
-      if (!window.ethers) document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.min.js"><\/script>');
-    </script>
+    <!-- No external wallet library: the small web3 layer this page needs is
+         built into the page script below. CDN copies of ethers.js kept
+         timing out on slow mobile connections, which killed both Connect
+         Wallet and every chain read ("Wallet library didn't load"). -->
     <style>
       :root {
         --bg: #eceee9;
@@ -1197,6 +1192,317 @@
 
     <script>
       "use strict";
+      /* ================= MiniEthers — built-in web3, no CDN =================
+         This replaces the ethers.js CDN bundle. The page only needs a thin
+         slice of web3 — eth_call reads over public RPCs, eth_sendTransaction
+         writes through the visitor's wallet, and ABI encode/decode for
+         (address, uint, bool) — so that slice lives here, inline, and can
+         never fail to load. It exposes the small ethers-style surface the
+         rest of this script uses: providers, Contract, utils. */
+      var MiniEthers = (function () {
+        var M64 = (BigInt(1) << BigInt(64)) - BigInt(1);
+        var KECCAK_RC = [
+          "0x0000000000000001", "0x0000000000008082", "0x800000000000808a", "0x8000000080008000",
+          "0x000000000000808b", "0x0000000080000001", "0x8000000080008081", "0x8000000000008009",
+          "0x000000000000008a", "0x0000000000000088", "0x0000000080008009", "0x000000008000000a",
+          "0x000000008000808b", "0x800000000000008b", "0x8000000000008089", "0x8000000000008003",
+          "0x8000000000008002", "0x8000000000000080", "0x000000000000800a", "0x800000008000000a",
+          "0x8000000080008081", "0x8000000000008080", "0x0000000080000001", "0x8000000080008008"
+        ].map(function (h) { return BigInt(h); });
+        var KECCAK_ROT = [
+          [0, 36, 3, 41, 18], [1, 44, 10, 45, 2], [62, 6, 43, 15, 61],
+          [28, 55, 25, 21, 56], [27, 20, 39, 8, 14]
+        ];
+        function rotl64(v, n) {
+          if (!n) return v;
+          var b = BigInt(n);
+          return ((v << b) | (v >> (BigInt(64) - b))) & M64;
+        }
+        function keccakF(A) {
+          for (var round = 0; round < 24; round++) {
+            var C = [], D = [], x, y;
+            for (x = 0; x < 5; x++) C[x] = A[x][0] ^ A[x][1] ^ A[x][2] ^ A[x][3] ^ A[x][4];
+            for (x = 0; x < 5; x++) D[x] = C[(x + 4) % 5] ^ rotl64(C[(x + 1) % 5], 1);
+            for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) A[x][y] ^= D[x];
+            var R = [];
+            for (x = 0; x < 5; x++) { R[x] = []; for (y = 0; y < 5; y++) R[x][y] = rotl64(A[x][y], KECCAK_ROT[x][y]); }
+            for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) A[x][y] = R[(x + 3 * y) % 5][x];
+            var B = [];
+            for (x = 0; x < 5; x++) { B[x] = A[x].slice(); }
+            for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) {
+              A[x][y] = B[x][y] ^ (~B[(x + 1) % 5][y] & B[(x + 2) % 5][y]);
+            }
+            A[0][0] ^= KECCAK_RC[round];
+          }
+        }
+        function keccak256(bytes) {
+          var rate = 136, A = [], x, y, i;
+          for (x = 0; x < 5; x++) { A[x] = []; for (y = 0; y < 5; y++) A[x][y] = BigInt(0); }
+          var padded = Array.prototype.slice.call(bytes);
+          padded.push(1);
+          while (padded.length % rate !== rate - 1) padded.push(0);
+          padded.push(128);
+          for (var block = 0; block < padded.length; block += rate) {
+            for (i = 0; i < rate / 8; i++) {
+              var lane = BigInt(0);
+              for (var j = 7; j >= 0; j--) lane = (lane << BigInt(8)) | BigInt(padded[block + i * 8 + j]);
+              A[i % 5][Math.floor(i / 5)] ^= lane;
+            }
+            keccakF(A);
+          }
+          var out = [];
+          for (i = 0; i < 4; i++) {
+            var l2 = A[i % 5][Math.floor(i / 5)];
+            for (var k = 0; k < 8; k++) { out.push(Number(l2 & BigInt(255))); l2 >>= BigInt(8); }
+          }
+          return out;
+        }
+        function asciiBytes(s) {
+          var b = [];
+          for (var i = 0; i < s.length; i++) b.push(s.charCodeAt(i) & 255);
+          return b;
+        }
+        function bytesHex(b) {
+          return b.map(function (v) { return (v < 16 ? "0" : "") + v.toString(16); }).join("");
+        }
+        function selectorOf(sig) { return "0x" + bytesHex(keccak256(asciiBytes(sig)).slice(0, 4)); }
+
+        /* ----- big-number stand-in (only what this page calls) ----- */
+        function toBI(v) {
+          if (v == null) return BigInt(0);
+          if (typeof v === "bigint") return v;
+          if (v._bi !== undefined) return v._bi;
+          if (typeof v === "number") return BigInt(Math.trunc(v));
+          return BigInt(String(v).trim());
+        }
+        function BU(v) { if (!(this instanceof BU)) return new BU(v); this._bi = toBI(v); }
+        BU.prototype.toNumber = function () { return Number(this._bi); };
+        BU.prototype.toString = function () { return this._bi.toString(10); };
+        BU.prototype.toHexString = function () { return "0x" + this._bi.toString(16); };
+        BU.prototype.gte = function (o) { return this._bi >= toBI(o); };
+        BU.prototype.gt = function (o) { return this._bi > toBI(o); };
+        BU.prototype.eq = function (o) { return this._bi === toBI(o); };
+        BU.prototype.isZero = function () { return this._bi === BigInt(0); };
+
+        var E18 = BigInt(10) ** BigInt(18);
+        function formatEther(v) {
+          var bi = toBI(v), neg = bi < BigInt(0);
+          if (neg) bi = -bi;
+          var whole = bi / E18, frac = (bi % E18).toString().padStart(18, "0").replace(/0+$/, "");
+          return (neg ? "-" : "") + whole.toString(10) + "." + (frac || "0");
+        }
+        function parseEther(str) {
+          var s = String(str).trim(), neg = false;
+          if (s.charAt(0) === "-") { neg = true; s = s.slice(1); }
+          var parts = s.split("."), whole = parts[0] || "0";
+          var frac = (parts[1] || "").padEnd(18, "0").slice(0, 18);
+          var bi = BigInt(whole) * E18 + BigInt(frac || "0");
+          return BU(neg ? -bi : bi);
+        }
+        function isAddress(a) { return typeof a === "string" && /^0x[0-9a-fA-F]{40}$/.test(a); }
+
+        /* ----- ABI fragments: parse, encode, decode ----- */
+        function parseParams(s) {
+          s = (s || "").trim();
+          if (!s) return [];
+          return s.split(",").map(function (p) {
+            var w = p.trim().split(/\s+/);
+            return { type: w[0], name: w[1] || null };
+          });
+        }
+        function parseFragment(f) {
+          var m = /^function\s+([A-Za-z0-9_]+)\(([^)]*)\)\s*(.*?)\s*(?:returns\s*\(([^)]*)\))?$/.exec(f.trim());
+          if (!m) throw new Error("Bad ABI fragment: " + f);
+          var mid = m[3] || "";
+          return {
+            name: m[1],
+            inputs: parseParams(m[2]),
+            outputs: parseParams(m[4] || ""),
+            mutability: /\bview\b|\bpure\b/.test(mid) ? "view" : (/\bpayable\b/.test(mid) ? "payable" : "nonpayable"),
+            sig: m[1] + "(" + parseParams(m[2]).map(function (p) { return p.type; }).join(",") + ")"
+          };
+        }
+        function encodeWord(type, v) {
+          if (type === "address") {
+            var h = String(v).toLowerCase().replace(/^0x/, "");
+            return h.padStart(64, "0");
+          }
+          if (type === "bool") return (v ? "1" : "0").padStart(64, "0");
+          return toBI(v).toString(16).padStart(64, "0"); // uintN
+        }
+        function decodeWord(type, w) {
+          if (type === "address") return "0x" + w.slice(24);
+          if (type === "bool") return BigInt("0x" + w) !== BigInt(0);
+          var bits = parseInt(type.replace("uint", ""), 10) || 256;
+          var bi = BigInt("0x" + w);
+          return bits <= 48 ? Number(bi) : BU(bi);
+        }
+        function decodeOutputs(frag, hex) {
+          var h = (hex || "0x").replace(/^0x/, "");
+          if (frag.outputs.length === 0) return null;
+          if (frag.outputs.length === 1) return decodeWord(frag.outputs[0].type, h.slice(0, 64).padStart(64, "0"));
+          var out = [];
+          frag.outputs.forEach(function (o, i) {
+            var v = decodeWord(o.type, h.slice(i * 64, i * 64 + 64).padStart(64, "0"));
+            out.push(v);
+            if (o.name) out[o.name] = v;
+          });
+          return out;
+        }
+
+        /* ----- revert reasons: turn hex error data back into names the
+           page's errText() already understands ----- */
+        var KNOWN_ERRORS = ["NoAgentId", "SessionActive", "NothingToClaim", "WrongSessionFee",
+          "WrongUpgradeFee", "SaleEnded", "BelowMinBuy", "AboveMaxBuy"];
+        var ERR_BY_SEL = {};
+        KNOWN_ERRORS.forEach(function (n) { ERR_BY_SEL[selectorOf(n + "()")] = n; });
+        function extractData(e, depth) {
+          if (!e || depth > 3) return null;
+          var d = e.data;
+          if (typeof d === "string" && /^0x[0-9a-fA-F]+$/.test(d)) return d;
+          if (d && typeof d === "object") { var inner = extractData(d, depth + 1); if (inner) return inner; }
+          if (e.error) return extractData(e.error, depth + 1);
+          return null;
+        }
+        function decodeRevert(data) {
+          if (!data || data.length < 10) return null;
+          var sel = data.slice(0, 10).toLowerCase();
+          if (ERR_BY_SEL[sel]) return ERR_BY_SEL[sel];
+          if (sel === "0x08c379a0") { // Error(string)
+            try {
+              var body = data.slice(10);
+              var len = Number(BigInt("0x" + body.slice(64, 128)));
+              var hexStr = body.slice(128, 128 + len * 2), s = "";
+              for (var i = 0; i < hexStr.length; i += 2) s += String.fromCharCode(parseInt(hexStr.substr(i, 2), 16));
+              return s || null;
+            } catch (e) { return null; }
+          }
+          return null;
+        }
+        function enrichError(e) {
+          var name = decodeRevert(extractData(e, 0));
+          if (name) {
+            var err = new Error("execution reverted: " + name);
+            err.data = extractData(e, 0);
+            return err;
+          }
+          return e;
+        }
+
+        /* ----- providers ----- */
+        function rpcJson(url, method, params) {
+          return fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: method, params: params })
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (j.error) {
+              var e = new Error(j.error.message || "RPC error");
+              e.data = j.error.data;
+              throw enrichError(e);
+            }
+            return j.result;
+          });
+        }
+        function JsonRpcProvider(url) { this.url = url; }
+        JsonRpcProvider.prototype.call = function (tx) {
+          return rpcJson(this.url, "eth_call", [{ to: tx.to, data: tx.data }, "latest"]);
+        };
+        JsonRpcProvider.prototype.getBalance = function (addr) {
+          return rpcJson(this.url, "eth_getBalance", [addr, "latest"]).then(function (h) { return BU(BigInt(h)); });
+        };
+
+        function waitReceipt(inj, hash) {
+          var tries = 0;
+          return new Promise(function (resolve, reject) {
+            (function poll() {
+              inj.request({ method: "eth_getTransactionReceipt", params: [hash] }).then(function (rc) {
+                if (rc) {
+                  if (rc.status === "0x0") reject(new Error("Transaction failed — it reverted on-chain."));
+                  else resolve(rc);
+                } else if (++tries > 120) reject(new Error("Transaction is taking too long to confirm — check it in your wallet."));
+                else setTimeout(poll, 2500);
+              }).catch(function () {
+                if (++tries > 120) reject(new Error("Could not check the transaction — see your wallet for its status."));
+                else setTimeout(poll, 2500);
+              });
+            })();
+          });
+        }
+        function Signer(inj) { this._inj = inj; }
+        Signer.prototype.getAddress = function () {
+          var inj = this._inj;
+          return inj.request({ method: "eth_accounts" }).then(function (accs) {
+            if (accs && accs.length) return accs[0];
+            return inj.request({ method: "eth_requestAccounts" }).then(function (a) { return a[0]; });
+          });
+        };
+        Signer.prototype.call = function (tx) {
+          var inj = this._inj;
+          return this.getAddress().then(function (from) {
+            return inj.request({ method: "eth_call", params: [{ from: from, to: tx.to, data: tx.data }, "latest"] });
+          }).catch(function (e) { throw enrichError(e); });
+        };
+        Signer.prototype.sendTransaction = function (tx) {
+          var inj = this._inj;
+          return this.getAddress().then(function (from) {
+            return inj.request({
+              method: "eth_sendTransaction",
+              params: [{ from: from, to: tx.to, data: tx.data, value: tx.value || "0x0" }]
+            });
+          }).then(function (hash) {
+            return { hash: hash, wait: function () { return waitReceipt(inj, hash); } };
+          }).catch(function (e) { throw enrichError(e); });
+        };
+        function Web3Provider(inj) { this._inj = inj; }
+        Web3Provider.prototype.send = function (method, params) {
+          return this._inj.request({ method: method, params: params || [] });
+        };
+        Web3Provider.prototype.getNetwork = function () {
+          return this._inj.request({ method: "eth_chainId" }).then(function (h) {
+            return { chainId: parseInt(h, 16) };
+          });
+        };
+        Web3Provider.prototype.getSigner = function () { return new Signer(this._inj); };
+        Web3Provider.prototype.call = function (tx) {
+          return this._inj.request({ method: "eth_call", params: [{ to: tx.to, data: tx.data }, "latest"] })
+            .catch(function (e) { throw enrichError(e); });
+        };
+
+        /* ----- contract ----- */
+        function Contract(address, abi, runner) {
+          this.address = address;
+          this.runner = runner;
+          var self = this;
+          abi.forEach(function (f) {
+            var frag = parseFragment(f);
+            self[frag.name] = function () {
+              var args = Array.prototype.slice.call(arguments);
+              var overrides = {};
+              if (args.length > frag.inputs.length) overrides = args.pop() || {};
+              var data = selectorOf(frag.sig);
+              frag.inputs.forEach(function (inp, i) { data += encodeWord(inp.type, args[i]); });
+              if (frag.mutability === "view") {
+                return self.runner.call({ to: self.address, data: data }).then(function (hex) {
+                  return decodeOutputs(frag, hex);
+                });
+              }
+              var value = "0x0";
+              if (overrides.value !== undefined) value = "0x" + toBI(overrides.value).toString(16);
+              return self.runner.sendTransaction({ to: self.address, data: data, value: value });
+            };
+          });
+        }
+
+        return {
+          providers: { JsonRpcProvider: JsonRpcProvider, Web3Provider: Web3Provider },
+          Contract: Contract,
+          utils: { formatEther: formatEther, parseEther: parseEther, isAddress: isAddress },
+          BigNumber: BU
+        };
+      })();
+      if (typeof window !== "undefined") window.ethers = MiniEthers;
+
       /* ================= Agent ID Miner — LIVE on BNB Chain =================
          Real contracts (deployed & verified by deploy-log check, ALL MATCH):
            Token   0xa8784fb81d3345a6edacc807c6814ea8f056dd2c
@@ -1213,7 +1519,7 @@
         "https://bsc-dataseed.binance.org/",
         "https://bsc-rpc.publicnode.com",
         "https://bsc-dataseed1.defibit.io/",
-        "https://rpc.ankr.com/bsc"
+        "https://bsc-dataseed2.binance.org/"
       ];
       var rpcIdx = 0;
       var CHAIN_ID = 56;
@@ -1425,19 +1731,49 @@
         el("console").scrollIntoView({ behavior: "smooth" });
         return false;
       }
+      // Wallet apps often inject window.ethereum a moment AFTER the page
+      // loads (mobile in-app browsers especially). Poll briefly for it
+      // instead of declaring "no wallet" on the first tap.
+      function waitForEthereum(ms) {
+        return new Promise(function (resolve) {
+          if (window.ethereum) return resolve(window.ethereum);
+          var t0 = Date.now();
+          function onInit() { cleanup(); resolve(window.ethereum || null); }
+          var iv = setInterval(function () {
+            if (window.ethereum) { cleanup(); resolve(window.ethereum); }
+            else if (Date.now() - t0 > ms) { cleanup(); resolve(null); }
+          }, 100);
+          function cleanup() {
+            clearInterval(iv);
+            window.removeEventListener("ethereum#initialized", onInit);
+          }
+          window.addEventListener("ethereum#initialized", onInit);
+        });
+      }
+      var providerListenersAttached = false;
+      function attachProviderListeners() {
+        if (providerListenersAttached || !window.ethereum || !window.ethereum.on) return;
+        providerListenersAttached = true;
+        window.ethereum.on("accountsChanged", function () { window.location.reload(); });
+        window.ethereum.on("chainChanged", function () { window.location.reload(); });
+      }
+      function finishConnect(addr, silent) {
+        attachProviderListeners();
+        walletProvider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = walletProvider.getSigner();
+        account = addr;
+        tokenW = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, signer);
+        minerW = new ethers.Contract(MINER_ADDR, MINER_ABI, signer);
+        presaleW = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, signer);
+        addLog('Wallet connected: <span class="g">' + shortAddr(account) + "</span> on BNB Chain.");
+        if (!silent) toast("Wallet connected: " + shortAddr(account));
+        refresh();
+      }
+      var connecting = false;
       function connectWallet() {
-        if (!window.ethereum) {
-          toast("No wallet found — open this page in a wallet browser (MetaMask, Trust Wallet, Binance Wallet).");
-          addLog("No wallet detected in this browser.");
-          return;
-        }
-        if (typeof window.ethers === "undefined") {
-          toast("Wallet library didn't load — check your connection, then reload the page.");
-          addLog("Wallet library failed to load — reload the page to try again.");
-          return;
-        }
         var btn = el("connectBtn");
-        if (btn.disabled) return;
+        if (connecting) return;
+        connecting = true;
         setBusy(btn, true, "Connecting…");
         // Watchdog: if the wallet never answers (prompt left open, app
         // backgrounded, slow network), free the button instead of leaving
@@ -1446,53 +1782,62 @@
         var timer = setTimeout(function () {
           if (finished) return;
           finished = true;
+          connecting = false;
           setBusy(btn, false);
           toast("Wallet took too long to answer. Open your wallet app, approve the request, then tap Connect again.");
           addLog("Wallet connection timed out — nothing was connected.");
         }, 30000);
-        function done() { finished = true; clearTimeout(timer); setBusy(btn, false); }
-        var wp;
-        try {
-          wp = new ethers.providers.Web3Provider(window.ethereum);
-        } catch (e) {
-          done();
-          toast("Wallet error — reload the page and try again.");
-          return;
-        }
-        wp.send("eth_requestAccounts", []).then(function () {
-          return wp.getNetwork();
-        }).then(function (net) {
-          if (net.chainId !== CHAIN_ID) {
-            return window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x38" }]
-            }).then(function () { return wp.getNetwork(); });
+        function done() { finished = true; clearTimeout(timer); connecting = false; setBusy(btn, false); }
+        waitForEthereum(2500).then(function (eth) {
+          if (!eth) {
+            done();
+            toast("No wallet found — open this page inside your wallet app's browser (MetaMask, Trust Wallet, Binance Wallet), then tap Connect.");
+            addLog("No wallet detected in this browser.");
+            return;
           }
-          return net;
-        }).then(function (net) {
-          if (net.chainId !== CHAIN_ID) throw new Error("Please switch to BNB Chain (chain ID 56).");
-          walletProvider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = walletProvider.getSigner();
-          return signer.getAddress();
-        }).then(function (addr) {
-          account = addr;
-          tokenW = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, signer);
-          minerW = new ethers.Contract(MINER_ADDR, MINER_ABI, signer);
-          presaleW = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, signer);
-          addLog('Wallet connected: <span class="g">' + shortAddr(account) + "</span> on BNB Chain.");
-          toast("Wallet connected: " + shortAddr(account));
-          done();
-          refresh();
-        }).catch(function (e) {
-          if (finished) return;
-          done();
-          toast(errText(e));
+          attachProviderListeners();
+          var wp = new ethers.providers.Web3Provider(eth);
+          wp.send("eth_requestAccounts", []).then(function () {
+            return wp.getNetwork();
+          }).then(function (net) {
+            if (net.chainId !== CHAIN_ID) {
+              return eth.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: "0x38" }]
+              }).catch(function (e) {
+                if (e && e.code === 4902) { // chain unknown to the wallet — add BSC, then it switches
+                  return eth.request({
+                    method: "wallet_addEthereumChain",
+                    params: [{
+                      chainId: "0x38",
+                      chainName: "BNB Smart Chain",
+                      nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+                      rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                      blockExplorerUrls: ["https://bscscan.com"]
+                    }]
+                  });
+                }
+                throw e;
+              }).then(function () { return wp.getNetwork(); });
+            }
+            return net;
+          }).then(function (net) {
+            if (net.chainId !== CHAIN_ID) throw new Error("Please switch to BNB Chain (chain ID 56).");
+            var sg = wp.getSigner();
+            return sg.getAddress();
+          }).then(function (addr) {
+            if (finished) return;
+            done();
+            finishConnect(addr, false);
+          }).catch(function (e) {
+            if (finished) return;
+            done();
+            if (e && e.code === 4001) toast("Cancelled in your wallet — tap Connect and approve to continue.");
+            else toast(errText(e));
+          });
         });
       }
-      if (window.ethereum && window.ethereum.on) {
-        window.ethereum.on("accountsChanged", function () { window.location.reload(); });
-        window.ethereum.on("chainChanged", function () { window.location.reload(); });
-      }
+      attachProviderListeners();
 
       /* ---------- machines UI ---------- */
       var machinesEl = el("machines");
@@ -2029,11 +2374,16 @@
       /* ---------- boot ---------- */
       initRead();
       addLog('Live on BNB Chain. Token <span class="g">0xa878…dd2c</span> · Miner <span class="g">0xe0ca…4897</span> · Presale <span class="g">0x37a6…53d5</span>.');
-      if (!ETHERS_OK) {
-        el("halvingNote").textContent = "Wallet library failed to load — check your connection and reload.";
-        addLog("Wallet library didn't load, so chain data can't be read. Reload the page to try again.");
-      }
       renderAll();
+      // Silent reconnect: if this wallet already authorized the page,
+      // eth_accounts answers without a popup — pick the session back up.
+      waitForEthereum(2000).then(function (eth) {
+        if (!eth || !eth.request || account) return;
+        attachProviderListeners();
+        eth.request({ method: "eth_accounts" }).then(function (accs) {
+          if (accs && accs.length && !account) finishConnect(accs[0], true);
+        }).catch(function () {});
+      });
       refresh().then(function () {
         pendingAt = Date.now();
         if (calcState.update) calcState.update();
