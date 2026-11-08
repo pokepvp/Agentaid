@@ -8,13 +8,14 @@
     <link rel="apple-touch-icon" href="icon.svg" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#f0b90b" />
-    <title>Agent ID Miner — Mine $AID (Simulation)</title>
+    <title>Agent ID Miner — Mine $AID on BNB Chain</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
     <style>
       :root {
         --bg: #eceee9;
@@ -60,27 +61,28 @@
       svg { display: block; max-width: 100%; height: auto; }
       .hero > *, .console-top > *, .machines > *, .epochs > *, .steps > *, .ref-grid > *, .rig-nums > * { min-width: 0; }
 
-      /* ---------- simulation banner ---------- */
-      .sim-banner {
-        background: var(--gold);
-        color: #191304;
+      /* ---------- live banner ---------- */
+      .live-banner {
+        background: #0e2a18;
+        color: #d9fbe7;
         text-align: center;
         padding: 10px 16px;
         font-weight: 700;
         font-size: 13.5px;
         line-height: 1.5;
       }
-      .sim-banner b {
+      .live-banner b {
         font-family: "JetBrains Mono", monospace;
         letter-spacing: 0.14em;
         font-size: 12px;
-        background: #191304;
-        color: var(--gold);
+        background: var(--green);
+        color: #07240f;
         padding: 2px 8px;
         border-radius: 4px;
         margin-right: 8px;
         white-space: nowrap;
       }
+      .live-banner a { color: var(--green); }
 
       /* ---------- hero ---------- */
       .hero {
@@ -109,11 +111,12 @@
         transition: transform 0.08s ease, background 0.15s ease, opacity 0.15s;
       }
       .btn:active { transform: translateY(1px); }
+      .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
       .btn-gold { background: var(--gold); color: #191304; }
       .btn-gold:hover { background: #ffc81f; }
       .btn-ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); }
       .btn-ghost:hover { border-color: var(--ink-soft); }
-      .btn:focus-visible, .nav-inner a:focus-visible, .reset-link:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
+      .btn:focus-visible, .nav-inner a:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
       .btn-note { font-size: 13.5px; line-height: 1.6; color: var(--term); background: var(--console-2); border: 1px solid rgba(240,185,11,0.45); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
       .btn-note[hidden] { display: none; }
       .btn-sm { padding: 10px 16px; font-size: 14px; border-radius: 8px; min-height: 44px; }
@@ -201,6 +204,8 @@
         background: rgba(240, 185, 11, 0.14); color: var(--gold);
         border: 1px solid rgba(240, 185, 11, 0.45); border-radius: 8px; padding: 5px 10px;
       }
+      .agent-badge.ok { background: rgba(74, 222, 128, 0.13); color: var(--green); border-color: rgba(74, 222, 128, 0.45); }
+      .agent-badge.bad { background: rgba(248, 113, 113, 0.12); color: var(--red); border-color: rgba(248, 113, 113, 0.45); }
       .btn-term { background: var(--gold); color: #191304; }
       .btn-term:hover { background: #ffc81f; }
       .btn-line { background: transparent; color: var(--term); border: 1.5px solid var(--console-line); }
@@ -211,6 +216,20 @@
       .supply .row b { color: var(--term); }
       .bar { height: 12px; background: #050705; border: 1px solid var(--console-line); border-radius: 999px; overflow: hidden; }
       .bar > div { height: 100%; background: var(--gold); border-radius: 999px; transition: width 0.6s ease; }
+
+      /* session panel — one session per wallet, drives both machines */
+      .sess-panel {
+        background: var(--console-2); border: 1px solid var(--console-line);
+        border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+      }
+      .sess-panel.active { border-color: rgba(74, 222, 128, 0.55); }
+      .sess-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+      .sess-head h3 { margin: 0; font-size: 18px; font-weight: 800; color: #fff; }
+      .sess-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 14px; margin: 14px 0 4px; font-size: 13px; }
+      .sess-grid .k { color: var(--term-dim); font-size: 10.5px; letter-spacing: 0.08em; font-weight: 700; }
+      .sess-grid .val { font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--term); margin-top: 2px; }
+      @media (max-width: 640px) { .sess-grid { grid-template-columns: 1fr 1fr; } }
+      .sess-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 
       .machines { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
       .machine {
@@ -228,14 +247,11 @@
       .status.boost { background: rgba(240, 185, 11, 0.2); color: var(--gold); border: 1px solid rgba(240, 185, 11, 0.55); }
       .btn-paid { background: var(--gold); color: #191304; }
       .btn-paid:hover { background: #ffc81f; }
-      .btn-paid.low { background: transparent; color: var(--gold); border: 1.5px solid rgba(240, 185, 11, 0.5); opacity: 0.75; }
       .session-note { font-size: 12.5px; line-height: 1.55; color: var(--term-dim); margin-top: 10px; }
       .session-note b { color: var(--gold); }
       .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 14px 0; font-size: 13px; }
       .m-grid .k { color: var(--term-dim); }
       .m-grid .val { font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--term); text-align: right; }
-      .m-pending { font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 800; color: var(--gold); }
-      .m-pending small { font-size: 13px; }
       .sbar { height: 8px; background: #050705; border-radius: 999px; overflow: hidden; margin: 10px 0 4px; }
       .sbar > div { height: 100%; background: var(--green); transition: width 0.5s linear; }
       .m-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -243,13 +259,13 @@
         margin-top: 14px; background: #050705; border: 1px solid var(--console-line);
         border-radius: var(--radius); padding: 14px 16px;
         font-family: "JetBrains Mono", monospace; font-size: 12.5px; line-height: 1.9; color: var(--term-dim);
-        max-height: 190px; overflow: hidden;
+        max-height: 190px; overflow-y: auto;
       }
       .log .t { color: #5c6b52; margin-right: 8px; }
       .log .g { color: var(--gold); }
+      .log a { color: var(--green); }
       .console-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-      .reset-link { background: none; border: 0; color: var(--term-dim); font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: underline; font-family: inherit; padding: 12px 8px; min-height: 44px; }
-      .reset-link:hover { color: var(--red); }
+      .console-foot .note { font-size: 12.5px; color: var(--term-dim); }
 
       /* ---------- epochs ---------- */
       .epochs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -272,11 +288,11 @@
       .ref-input {
         flex: 1 1 220px; font-family: "JetBrains Mono", monospace; font-size: 14px;
         padding: 11px 13px; border-radius: 9px; border: 1.5px solid var(--line);
-        background: var(--bg); color: var(--ink); min-width: 0;
+        background: var(--bg); color: var(--ink); min-width: 0; min-height: 44px;
       }
       .ref-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       .ref-stats div { background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; }
-      .ref-stats .v { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 18px; }
+      .ref-stats .v { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 18px; word-break: break-all; }
       .ref-stats .k { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; }
       .pct { font-size: 52px; font-weight: 900; line-height: 1; color: var(--gold-deep); }
       @media (prefers-color-scheme: dark) { .pct { color: var(--gold); } }
@@ -329,12 +345,17 @@
       .fact .fv { font-size: 15px; line-height: 1.55; }
       .fact .fv .mono { font-weight: 700; }
       .fact .fv small { color: var(--ink-soft); }
-      .tbd {
-        font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700;
-        background: rgba(240, 185, 11, 0.16); color: var(--gold-deep);
-        border: 1px solid rgba(240, 185, 11, 0.5); border-radius: 6px; padding: 2px 8px; white-space: nowrap;
+      .fact .fv a { color: var(--gold-deep); font-weight: 700; }
+      @media (prefers-color-scheme: dark) { .fact .fv a { color: var(--gold); } }
+      .addr-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .addr-line .mono { word-break: break-all; }
+      .copy-btn {
+        appearance: none; cursor: pointer; touch-action: manipulation; font-family: "JetBrains Mono", monospace;
+        font-size: 12px; font-weight: 700; padding: 8px 12px; min-height: 44px; border-radius: 8px;
+        background: var(--bg-soft); color: var(--ink); border: 1.5px solid var(--line);
       }
-      @media (prefers-color-scheme: dark) { .tbd { color: var(--gold); } }
+      .copy-btn:hover { border-color: var(--ink-soft); }
+      .copy-btn:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
       @media (max-width: 640px) { .fact { grid-template-columns: 1fr; gap: 2px; } }
 
       /* ---------- presale ---------- */
@@ -347,8 +368,9 @@
       .presale-status {
         display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 800;
         letter-spacing: 0.08em; padding: 5px 10px; border-radius: 999px;
-        background: rgba(240, 185, 11, 0.16); color: var(--gold); border: 1px solid rgba(240, 185, 11, 0.45);
+        background: rgba(74, 222, 128, 0.14); color: var(--green); border: 1px solid rgba(74, 222, 128, 0.45);
       }
+      .presale-status.ended { background: rgba(248, 113, 113, 0.12); color: var(--red); border-color: rgba(248, 113, 113, 0.45); }
       .presale-price { font-family: "JetBrains Mono", monospace; font-size: clamp(26px, 4vw, 36px); font-weight: 800; color: #fff; line-height: 1.15; margin: 16px 0 6px; }
       .presale-price small { font-size: 15px; color: var(--gold); font-weight: 700; }
       .presale-card p { margin: 0 0 16px; color: var(--term-dim); font-size: 14.5px; line-height: 1.6; }
@@ -362,8 +384,10 @@
       .presale-address {
         margin-top: 14px; background: #050705; border: 1px dashed var(--console-line); border-radius: 10px;
         padding: 13px 14px; font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.6; color: var(--term-dim);
+        word-break: break-all;
       }
       .presale-address b { color: var(--gold); }
+      .presale-address a { color: var(--green); }
       .presale-note { margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--term-dim); }
       .presale-note b { color: var(--term); }
 
@@ -431,11 +455,13 @@
         background: var(--bg-soft); color: var(--ink-soft);
       }
       .phase.live .pnum { background: var(--gold); color: #191304; }
+      .phase.done .pnum { background: var(--green); color: #07240f; }
       .phase h3 { margin: 2px 0 5px; font-size: 17px; font-weight: 800; }
       .phase p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
       .phase .when { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
       .pstatus { font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
       .pstatus.live { background: var(--gold); color: #191304; }
+      .pstatus.done { background: var(--green); color: #07240f; }
       .pstatus.next { background: var(--bg-soft); color: var(--ink-soft); }
       @media (max-width: 640px) {
         .phase { grid-template-columns: 46px 1fr; }
@@ -469,6 +495,8 @@
       footer { border-top: 1.5px solid var(--line); margin-top: 26px; padding: 26px 0 calc(40px + env(safe-area-inset-bottom, 0px)); }
       footer p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; margin: 0 0 8px; max-width: 78ch; }
       footer b { color: var(--ink); }
+      footer a { color: var(--gold-deep); }
+      @media (prefers-color-scheme: dark) { footer a { color: var(--gold); } }
       .social-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
       .social-link {
         display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
@@ -509,119 +537,119 @@
   </head>
   <body>
     <!-- $AID token emblem: a gold Agent ID badge, reused via <use> -->
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="aidGold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffd94d" />
-          <stop offset="1" stop-color="#eda900" />
-        </linearGradient>
-        <linearGradient id="aidGreen" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#a9f4c2" />
-          <stop offset="1" stop-color="#3ecf6e" />
-        </linearGradient>
-        <symbol id="aid-emblem" viewBox="0 0 120 120">
-          <rect x="15" y="9" width="90" height="102" rx="15" fill="url(#aidGold)" stroke="#a87e00" stroke-width="2.5" />
-          <rect x="22.5" y="16.5" width="75" height="87" rx="10" fill="none" stroke="rgba(25,19,4,0.28)" stroke-width="1.6" />
-          <rect x="46" y="21" width="28" height="6.5" rx="3.25" fill="#191304" opacity="0.5" />
-          <use href="#robotFaceGold" transform="translate(60,50) scale(1.05)"></use>
-          <text x="60" y="99" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="20" letter-spacing="2.5" fill="#191304">AID</text>
-        </symbol>
-        <!-- $AID logo robot face: octagonal gold head, ring-dot glowing eyes,
-             hex nose with triangle, grille mouth, ear panels, circuit lines.
-             Drawn once here and reused via <use> everywhere on the page. -->
-        <g id="robotFaceGold">
-          <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
-          <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
-          <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
-          <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
-          <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGold)" stroke="#191304" stroke-width="2.2" stroke-linejoin="round" />
-          <path d="M-7.5,-16.9 H7.5" stroke="#fff6cf" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
-          <g stroke="#191304" stroke-width="1.1" opacity="0.45" fill="none">
-            <path d="M-13,-12.5 H-6" />
-            <path d="M6,-12.5 H13" />
-            <path d="M0,-15.5 V-11" />
-          </g>
-          <g fill="#191304" opacity="0.45">
-            <circle cx="-4.2" cy="-12.5" r="1.15" />
-            <circle cx="4.2" cy="-12.5" r="1.15" />
-            <circle cx="0" cy="-9.4" r="1.15" />
-          </g>
-          <g class="eye">
-            <circle cx="-8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
-            <g fill="#ffd94d">
-              <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="aidGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffd94d" />
+              <stop offset="1" stop-color="#eda900" />
+            </linearGradient>
+            <linearGradient id="aidGreen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#a9f4c2" />
+              <stop offset="1" stop-color="#3ecf6e" />
+            </linearGradient>
+            <symbol id="aid-emblem" viewBox="0 0 120 120">
+              <rect x="15" y="9" width="90" height="102" rx="15" fill="url(#aidGold)" stroke="#a87e00" stroke-width="2.5" />
+              <rect x="22.5" y="16.5" width="75" height="87" rx="10" fill="none" stroke="rgba(25,19,4,0.28)" stroke-width="1.6" />
+              <rect x="46" y="21" width="28" height="6.5" rx="3.25" fill="#191304" opacity="0.5" />
+              <use href="#robotFaceGold" transform="translate(60,50) scale(1.05)"></use>
+              <text x="60" y="99" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="900" font-size="20" letter-spacing="2.5" fill="#191304">AID</text>
+            </symbol>
+            <!-- $AID logo robot face: octagonal gold head, ring-dot glowing eyes,
+                 hex nose with triangle, grille mouth, ear panels, circuit lines.
+                 Drawn once here and reused via <use> everywhere on the page. -->
+            <g id="robotFaceGold">
+              <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
+              <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#cf9203" stroke="#191304" stroke-width="1.8" />
+              <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
+              <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#191304" opacity="0.3" />
+              <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGold)" stroke="#191304" stroke-width="2.2" stroke-linejoin="round" />
+              <path d="M-7.5,-16.9 H7.5" stroke="#fff6cf" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
+              <g stroke="#191304" stroke-width="1.1" opacity="0.45" fill="none">
+                <path d="M-13,-12.5 H-6" />
+                <path d="M6,-12.5 H13" />
+                <path d="M0,-15.5 V-11" />
+              </g>
+              <g fill="#191304" opacity="0.45">
+                <circle cx="-4.2" cy="-12.5" r="1.15" />
+                <circle cx="4.2" cy="-12.5" r="1.15" />
+                <circle cx="0" cy="-9.4" r="1.15" />
+              </g>
+              <g class="eye">
+                <circle cx="-8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
+                <g fill="#ffd94d">
+                  <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
+                </g>
+                <circle cx="-8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
+                <circle cx="-8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
+              </g>
+              <g class="eye">
+                <circle cx="8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
+                <g fill="#ffd94d">
+                  <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
+                </g>
+                <circle cx="8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
+                <circle cx="8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
+              </g>
+              <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#cf9203" stroke="#191304" stroke-width="1.4" stroke-linejoin="round" />
+              <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#191304" opacity="0.75" />
+              <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#221806" stroke="#191304" stroke-width="1.5" />
+              <g stroke="#ffd94d" stroke-width="1.5" stroke-linecap="round">
+                <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
+                <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
+                <line x1="0" y1="13.1" x2="0" y2="16.4" />
+                <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
+                <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
+              </g>
             </g>
-            <circle cx="-8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
-            <circle cx="-8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
-          </g>
-          <g class="eye">
-            <circle cx="8.5" cy="-2.5" r="6.1" fill="#221806" stroke="#191304" stroke-width="1.5" />
-            <g fill="#ffd94d">
-              <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
+            <g id="robotFaceGreen">
+              <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
+              <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
+              <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
+              <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
+              <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGreen)" stroke="#07240f" stroke-width="2.2" stroke-linejoin="round" />
+              <path d="M-7.5,-16.9 H7.5" stroke="#eafff1" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
+              <g stroke="#07240f" stroke-width="1.1" opacity="0.45" fill="none">
+                <path d="M-13,-12.5 H-6" />
+                <path d="M6,-12.5 H13" />
+                <path d="M0,-15.5 V-11" />
+              </g>
+              <g fill="#07240f" opacity="0.45">
+                <circle cx="-4.2" cy="-12.5" r="1.15" />
+                <circle cx="4.2" cy="-12.5" r="1.15" />
+                <circle cx="0" cy="-9.4" r="1.15" />
+              </g>
+              <g class="eye">
+                <circle cx="-8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+                <g fill="#c9ffdc">
+                  <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
+                </g>
+                <circle cx="-8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
+                <circle cx="-8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
+              </g>
+              <g class="eye">
+                <circle cx="8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+                <g fill="#c9ffdc">
+                  <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
+                </g>
+                <circle cx="8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
+                <circle cx="8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
+              </g>
+              <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#2fb457" stroke="#07240f" stroke-width="1.4" stroke-linejoin="round" />
+              <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#07240f" opacity="0.75" />
+              <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
+              <g stroke="#a9f4c2" stroke-width="1.5" stroke-linecap="round">
+                <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
+                <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
+                <line x1="0" y1="13.1" x2="0" y2="16.4" />
+                <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
+                <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
+              </g>
             </g>
-            <circle cx="8.5" cy="-2.5" r="2.4" fill="#ffe680" opacity="0.4" />
-            <circle cx="8.5" cy="-2.5" r="1.5" fill="#fff6c4" />
-          </g>
-          <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#cf9203" stroke="#191304" stroke-width="1.4" stroke-linejoin="round" />
-          <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#191304" opacity="0.75" />
-          <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#221806" stroke="#191304" stroke-width="1.5" />
-          <g stroke="#ffd94d" stroke-width="1.5" stroke-linecap="round">
-            <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
-            <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
-            <line x1="0" y1="13.1" x2="0" y2="16.4" />
-            <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
-            <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
-          </g>
-        </g>
-        <g id="robotFaceGreen">
-          <rect x="-25.5" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
-          <rect x="19" y="-8" width="6.5" height="17" rx="2" fill="#2fb457" stroke="#07240f" stroke-width="1.8" />
-          <rect x="-23.6" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
-          <rect x="21" y="-3.5" width="2.6" height="8" rx="1.3" fill="#07240f" opacity="0.3" />
-          <polygon points="-9,-19 9,-19 19,-9 19,10 9,20 -9,20 -19,10 -19,-9" fill="url(#aidGreen)" stroke="#07240f" stroke-width="2.2" stroke-linejoin="round" />
-          <path d="M-7.5,-16.9 H7.5" stroke="#eafff1" stroke-width="1.7" stroke-linecap="round" opacity="0.6" fill="none" />
-          <g stroke="#07240f" stroke-width="1.1" opacity="0.45" fill="none">
-            <path d="M-13,-12.5 H-6" />
-            <path d="M6,-12.5 H13" />
-            <path d="M0,-15.5 V-11" />
-          </g>
-          <g fill="#07240f" opacity="0.45">
-            <circle cx="-4.2" cy="-12.5" r="1.15" />
-            <circle cx="4.2" cy="-12.5" r="1.15" />
-            <circle cx="0" cy="-9.4" r="1.15" />
-          </g>
-          <g class="eye">
-            <circle cx="-8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
-            <g fill="#c9ffdc">
-              <circle cx="-4.6" cy="-2.5" r="0.72" /><circle cx="-5.7" cy="0.3" r="0.72" /><circle cx="-8.5" cy="1.4" r="0.72" /><circle cx="-11.3" cy="0.3" r="0.72" /><circle cx="-12.4" cy="-2.5" r="0.72" /><circle cx="-11.3" cy="-5.3" r="0.72" /><circle cx="-8.5" cy="-6.4" r="0.72" /><circle cx="-5.7" cy="-5.3" r="0.72" />
-            </g>
-            <circle cx="-8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
-            <circle cx="-8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
-          </g>
-          <g class="eye">
-            <circle cx="8.5" cy="-2.5" r="6.1" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
-            <g fill="#c9ffdc">
-              <circle cx="12.4" cy="-2.5" r="0.72" /><circle cx="11.3" cy="0.3" r="0.72" /><circle cx="8.5" cy="1.4" r="0.72" /><circle cx="5.7" cy="0.3" r="0.72" /><circle cx="4.6" cy="-2.5" r="0.72" /><circle cx="5.7" cy="-5.3" r="0.72" /><circle cx="8.5" cy="-6.4" r="0.72" /><circle cx="11.3" cy="-5.3" r="0.72" />
-            </g>
-            <circle cx="8.5" cy="-2.5" r="2.4" fill="#7dffab" opacity="0.4" />
-            <circle cx="8.5" cy="-2.5" r="1.5" fill="#f4fff8" />
-          </g>
-          <polygon points="0,1.6 3.1,3.4 3.1,6.9 0,8.8 -3.1,6.9 -3.1,3.4" fill="#2fb457" stroke="#07240f" stroke-width="1.4" stroke-linejoin="round" />
-          <polygon points="0,3.9 -1.5,6.6 1.5,6.6" fill="#07240f" opacity="0.75" />
-          <rect x="-10" y="11.5" width="20" height="6.5" rx="3.2" fill="#0a2413" stroke="#07240f" stroke-width="1.5" />
-          <g stroke="#a9f4c2" stroke-width="1.5" stroke-linecap="round">
-            <line x1="-6.5" y1="13.1" x2="-6.5" y2="16.4" />
-            <line x1="-3.25" y1="13.1" x2="-3.25" y2="16.4" />
-            <line x1="0" y1="13.1" x2="0" y2="16.4" />
-            <line x1="3.25" y1="13.1" x2="3.25" y2="16.4" />
-            <line x1="6.5" y1="13.1" x2="6.5" y2="16.4" />
-          </g>
-        </g>
-      </defs>
-    </svg>
+          </defs>
+        </svg>
 
-    <div class="sim-banner" role="note">
-      <span><b>SIMULATION</b>$AID is a simulated token — no real value, nothing on-chain.</span>
+    <div class="live-banner" role="note">
+      <span><b>LIVE</b>$AID is live on BNB Chain. Mining and the presale run on the real contracts below.</span>
     </div>
 
     <header class="topnav">
@@ -647,13 +675,13 @@
           </div>
           <h1>Your Agent ID mines <span class="tk">$AID</span> for you.</h1>
           <p class="lede">
-            Connect, start a machine, earn $AID. Pick per session:
-            <b>Free — 3h at ×1</b>, or <b>Paid — 12h at ×3 for 0.003 BNB</b> (simulated).
+            Live on BNB Chain. Connect a wallet holding a Binance Agent ID, start one session,
+            both machines earn $AID. <b>Free — 3h at ×1</b>, or <b>Paid — 12h at ×3 for 0.003 BNB</b>.
             Referral bonus +10%.
           </p>
           <div class="cta-row">
             <button class="btn btn-gold" id="heroStart">Start Mining</button>
-            <a class="btn btn-ghost" href="#presale" style="text-decoration:none;">Buy $AID</a>
+            <a class="btn btn-ghost" href="#presale" style="text-decoration:none;">Buy $AID — Presale Live</a>
           </div>
           <div class="chips">
             <span class="chip">Supply <b>21,000,000 $AID</b></span>
@@ -725,8 +753,8 @@
             <canvas id="hashChart" height="54"></canvas>
           </div>
           <div class="rig-nums">
-            <div><div class="v" id="rigMined">0</div><div class="k">$AID MINED (SIM)</div></div>
-            <div><div class="v" id="rigEpoch">1 / 4</div><div class="k">EPOCH</div></div>
+            <div><div class="v" id="rigMined">—</div><div class="k">$AID MINTED (ON-CHAIN)</div></div>
+            <div><div class="v" id="rigEpoch">—</div><div class="k">EPOCH</div></div>
             <div><div class="v" id="rigRate">×1.00</div><div class="k">REWARD RATE</div></div>
           </div>
         </div>
@@ -736,44 +764,66 @@
       <section id="console">
         <div class="sec-head">
           <h2>Mining console</h2>
-          <p>Pick per start: Free 3h ×1 (0 BNB) or Paid 12h ×3 (0.003 BNB, sim).</p>
+          <p>One session per wallet — it runs both machines. Free 3h ×1 (0 BNB) or Paid 12h ×3 (0.003 BNB).</p>
         </div>
         <div class="console">
           <div class="console-top">
             <div class="stat">
-              <div class="k">YOUR AGENT ID</div>
+              <div class="k">WALLET</div>
               <div class="agent-line">
-                <span class="agent-badge" id="agentBadge">not connected</span>
-                <button class="btn btn-term btn-sm" id="connectBtn">Connect</button>
+                <span class="agent-badge" id="walletBadge">not connected</span>
+                <button class="btn btn-term btn-sm" id="connectBtn">Connect Wallet</button>
               </div>
-              <div class="sub">Simulation only — no wallet needed.</div>
+              <div class="sub" id="walletSub">BNB Chain · chain ID 56. Mining needs a Binance Agent ID in this wallet.</div>
+            </div>
+            <div class="stat">
+              <div class="k">AGENT ID</div>
+              <div class="agent-line">
+                <span class="agent-badge" id="agentBadge">—</span>
+              </div>
+              <div class="sub">Checked on-chain against the Binance Agent ID registry.</div>
             </div>
             <div class="stat">
               <div class="k">BALANCE</div>
-              <div class="v"><span id="balance">0.00</span> <small>$AID</small></div>
-              <div class="sub">Total earned: <span class="mono" id="totalEarned">0.00</span> $AID</div>
+              <div class="v"><span id="balance">—</span> <small>$AID</small></div>
+              <div class="sub">In your wallet, read from the token contract.</div>
             </div>
             <div class="stat">
-              <div class="k">BNB WALLET (SIM)</div>
-              <div class="v"><span id="bnbBalance">0.01000</span> <small>BNB</small></div>
-              <div class="sub" id="bnbSub">Paid: 0.003 BNB · Upgrade: +0.003 BNB · Free: 0 BNB</div>
-              <div class="agent-line">
-                <button class="btn btn-line btn-sm" id="topupBtn">Top Up</button>
-              </div>
-            </div>
-            <div class="stat">
-              <div class="k">YOUR HASH POWER</div>
-              <div class="v"><span id="hashPower">0</span> <small>MH/s</small></div>
-              <div class="sub">≈ <span class="mono" id="perDay">0</span> $AID / day at current epoch</div>
+              <div class="k">BNB BALANCE</div>
+              <div class="v"><span id="bnbBalance">—</span> <small>BNB</small></div>
+              <div class="sub">Paid session 0.003 BNB · Upgrade +0.003 BNB · Free 0 BNB</div>
             </div>
           </div>
 
           <div class="supply">
             <div class="row">
-              <span>NETWORK MINED (SIM) <b id="globalMined">0</b> / 21,000,000 $AID</span>
-              <span id="halvingNote">Epoch 1 · next halving at 5,250,000</span>
+              <span>TOTAL MINTED (ON-CHAIN) <b id="globalMined">—</b> / 21,000,000 $AID</span>
+              <span id="halvingNote">Reading chain…</span>
             </div>
             <div class="bar"><div id="supplyBar" style="width:0%"></div></div>
+          </div>
+
+          <div class="sess-panel" id="sessPanel">
+            <div class="sess-head">
+              <div>
+                <div class="slot mono" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--term-dim);">SESSION · ONE PER WALLET · BOTH MACHINES</div>
+                <h3 id="sessTitle">No session running</h3>
+              </div>
+              <span class="status idle" id="sessStatus"><span class="dot"></span>IDLE</span>
+            </div>
+            <div class="sess-grid">
+              <div><div class="k">PENDING — READY TO CLAIM</div><div class="val"><span id="sessPending">0.00</span> $AID</div></div>
+              <div><div class="k">TIME LEFT</div><div class="val" id="sessLeft">—</div></div>
+              <div><div class="k">YOUR RATE NOW</div><div class="val"><span id="sessRate">0</span> $AID/day</div></div>
+              <div><div class="k">SESSIONS STARTED</div><div class="val" id="sessCount">0</div></div>
+            </div>
+            <div class="sbar"><div id="sessProg" style="width:0%"></div></div>
+            <div class="sess-actions">
+              <button class="btn btn-line btn-sm" id="startFreeBtn">Start Free · 3h · ×1</button>
+              <button class="btn btn-paid btn-sm" id="startPaidBtn">Start Paid · 12h · ×3 · 0.003 BNB</button>
+              <button class="btn btn-term btn-sm" id="claimBtn">Claim $AID</button>
+            </div>
+            <div class="session-note" id="sessNote">Connect your wallet to start. <b>Free</b> ≈25 $AID per session · <b>Paid</b> ≈300 $AID per session (both machines, base tier, Epoch 1).</div>
           </div>
 
           <div class="machines" id="machines"></div>
@@ -781,8 +831,8 @@
           <div class="log" id="log" aria-live="polite"></div>
 
           <div class="console-foot">
-            <button class="btn btn-term btn-sm" id="claimAllBtn">Claim All</button>
-            <button class="reset-link" id="resetBtn">Reset</button>
+            <span class="note">Every action is a real transaction on BNB Chain — your wallet asks you to confirm, and gas applies.</span>
+            <button class="btn btn-line btn-sm" id="refreshBtn">Refresh</button>
           </div>
         </div>
       </section>
@@ -800,27 +850,33 @@
       <section id="referral">
         <div class="sec-head">
           <h2>Referral: +10%, minted on top</h2>
-          <p>+10% of what your invitees mine, plus 10% of their Paid session fees.</p>
+          <p>+10% of what your invitees claim, plus 10% of their Paid fees.</p>
         </div>
         <div class="ref-grid">
           <div class="panel">
-            <h3>Your referral code</h3>
-            <p>Share your code anywhere. You earn 10% of what invitees mine, plus 10% of their session fees — they keep 100% of theirs. Link: <span class="mono" id="refLinkText">agent-id-miner/r/…</span></p>
+            <h3>Set your referrer</h3>
+            <p>Someone sent you here? Paste their wallet address and confirm once — it can never be changed. They get +10% of everything you claim, minted on top. You keep 100%.</p>
             <div class="ref-link-row">
-              <input class="ref-input" id="refLink" readonly value="" aria-label="Your referral code" />
+              <input class="ref-input" id="refInput" placeholder="0x… referrer wallet address" aria-label="Referrer wallet address" spellcheck="false" />
+              <button class="btn btn-gold btn-sm" id="setRefBtn">Set Referrer</button>
+            </div>
+            <p style="margin-top:14px;" id="refCurrent">Your referrer: <span class="mono">not set</span></p>
+            <h3 style="margin-top:20px;">Your referral code</h3>
+            <p>Your wallet address is your referral code. Anyone who pastes it above — or opens this page with <span class="mono">?ref=</span> followed by your address — sets you as their referrer.</p>
+            <div class="ref-link-row">
+              <input class="ref-input" id="refLink" readonly value="" aria-label="Your wallet address — your referral code" />
               <button class="btn btn-gold btn-sm" id="copyRefBtn">Copy Code</button>
             </div>
-            <p style="margin-top:14px;">Try it:</p>
-            <button class="btn btn-ghost btn-sm" id="simInviteeBtn">Test Referral</button>
           </div>
           <div class="panel">
             <div class="pct">10%</div>
-            <p>of what your invitees mine, paid to you — plus 10% of their session fees (sim BNB).</p>
+            <p>of what your invitees claim is minted to you on top, plus 10% of their Paid session and upgrade fees (BNB, claimable here).</p>
             <div class="ref-stats">
-              <div><div class="v" id="refEvents">0</div><div class="k">Invitee claims (sim)</div></div>
-              <div><div class="v" id="refMined">0</div><div class="k">$AID mined by invitees</div></div>
-              <div><div class="v" id="refEarned">0</div><div class="k">Your bonus $AID</div></div>
-              <div><div class="v" id="refBnb">0.00000</div><div class="k">Your fee bonus BNB (sim)</div></div>
+              <div><div class="v" id="refFeeBal">—</div><div class="k">Referral fees waiting (BNB)</div></div>
+              <div><div class="v" id="refWho">—</div><div class="k">Your referrer</div></div>
+            </div>
+            <div class="ref-link-row" style="margin-top:14px;">
+              <button class="btn btn-gold btn-sm" id="claimRefBtn">Claim Referral Fees</button>
             </div>
           </div>
         </div>
@@ -830,23 +886,23 @@
       <section>
         <div class="sec-head">
           <h2>How it works</h2>
-          <p>Three steps. All fees are simulated BNB.</p>
+          <p>Three steps. Real BNB, real $AID.</p>
         </div>
         <div class="steps">
           <div class="step">
             <div class="num">STEP 1</div>
-            <h3>Connect Agent ID</h3>
-            <p>One tap in the console creates your simulated Agent ID.</p>
+            <h3>Connect wallet</h3>
+            <p>Connect on BNB Chain. Your wallet must hold a Binance Agent ID to mine — presale needs none.</p>
           </div>
           <div class="step">
             <div class="num">STEP 2</div>
-            <h3>Pick Free or Paid</h3>
-            <p><b>Free:</b> 3h at ×1, 0 BNB. <b>Paid:</b> 12h at ×3, 0.003 BNB up front. Upgrades cost $AID + 0.003 BNB.</p>
+            <h3>Start one session</h3>
+            <p><b>Free:</b> 3h at ×1, 0 BNB. <b>Paid:</b> 12h at ×3, 0.003 BNB up front. One session runs both machines. Upgrades cost $AID + 0.003 BNB.</p>
           </div>
           <div class="step">
             <div class="num">STEP 3</div>
             <h3>Claim &amp; invite</h3>
-            <p>Claim anytime. Invite friends and earn +10% of what they mine.</p>
+            <p>Claim $AID anytime — it is minted straight to your wallet. Invite friends and earn +10% of what they claim.</p>
           </div>
         </div>
       </section>
@@ -855,7 +911,7 @@
       <section id="token">
         <div class="sec-head">
           <h2>Token — $AID</h2>
-          <p>The real contract is written and tested — not deployed yet. Address: TBD.</p>
+          <p>Live on BNB Chain. All three contracts are deployed and checked — ALL MATCH.</p>
         </div>
         <div class="token-head">
           <svg role="img" aria-label="$AID token emblem — a gold Agent ID badge with a gold robot face and the letters AID"><use href="#aid-emblem"></use></svg>
@@ -870,11 +926,13 @@
           <div class="fact"><div class="fk">CHAIN</div><div class="fv">BNB Chain <small>· chain ID</small> <span class="mono">56</span></div></div>
           <div class="fact"><div class="fk">DECIMALS</div><div class="fv"><span class="mono">18</span></div></div>
           <div class="fact"><div class="fk">MAX SUPPLY</div><div class="fv"><span class="mono">21,000,000 $AID</span> <small>— hard cap.</small> <span class="mono">2,100,000 (10%)</span> <small>presale ·</small> <span class="mono">18,900,000 (90%)</span> <small>mining</small></div></div>
-          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000</span> presale + <span class="mono">3,150,000</span> mining. Epochs 2–4: <span class="mono">5,250,000</span> mining each. Rate halves each epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span>. Free Miner: <span class="mono">100 $AID/day</span> in Epoch 1.</div></div>
-          <div class="fact"><div class="fk">SESSION TYPES &amp; FEE</div><div class="fv"><b>Free:</b> <span class="mono">3h · ×1 · 0 BNB</span> <small>(≈12.5 $AID/session).</small> <b>Paid:</b> <span class="mono">12h · ×3 · 0.003 BNB</span> <small>up front (≈150 $AID/session). Stacks with upgrades (Turbo ×2 + Paid ×3 = ×6).</small> Fee split: <span class="mono">90%</span> treasury, <span class="mono">10%</span> referrer.</div></div>
-          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID + 0.003 BNB</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID + 0.003 BNB</span>. <small>The $AID is burned.</small></div></div>
-          <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>You must hold a</small> Binance Agent ID <small>to mine (real contract).</small></div></div>
-          <div class="fact"><div class="fk">CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
+          <div class="fact"><div class="fk">EMISSION</div><div class="fv">Epoch 1: <span class="mono">2,100,000</span> presale + <span class="mono">3,150,000</span> mining. Epochs 2–4: <span class="mono">5,250,000</span> mining each. Rate halves each epoch: <span class="mono">×1 → ×0.5 → ×0.25 → ×0.125</span>. Each base machine: <span class="mono">100 $AID/day</span> in Epoch 1.</div></div>
+          <div class="fact"><div class="fk">SESSION TYPES &amp; FEE</div><div class="fv"><b>Free:</b> <span class="mono">3h · ×1 · 0 BNB</span>. <b>Paid:</b> <span class="mono">12h · ×3 · 0.003 BNB</span> <small>up front. One session per wallet runs both machines. Stacks with upgrades (Turbo ×2 + Paid ×3 = ×6).</small> Fee split: <span class="mono">90%</span> treasury, <span class="mono">10%</span> referrer.</div></div>
+          <div class="fact"><div class="fk">UPGRADES</div><div class="fv">Turbo Miner <span class="mono">×2</span> — <span class="mono">500 $AID + 0.003 BNB</span> · Quantum Rig <span class="mono">×4</span> — <span class="mono">2,000 $AID + 0.003 BNB</span>. <small>The $AID is burned. First upgrade asks you to approve the burn.</small></div></div>
+          <div class="fact"><div class="fk">MINING REQUIREMENT</div><div class="fv"><small>You must hold a</small> Binance Agent ID <small>to mine. The miner checks the registry</small> <span class="mono">0x60B9…022F</span> <small>on every session start.</small></div></div>
+          <div class="fact"><div class="fk">TOKEN CONTRACT</div><div class="fv"><span class="addr-line"><span class="mono">0xa8784fb81d3345a6edacc807c6814ea8f056dd2c</span><button class="copy-btn" data-copy="0xa8784fb81d3345a6edacc807c6814ea8f056dd2c">Copy</button><a href="https://bscscan.com/address/0xa8784fb81d3345a6edacc807c6814ea8f056dd2c" target="_blank" rel="noopener noreferrer">BscScan ↗</a></span></div></div>
+          <div class="fact"><div class="fk">MINER CONTRACT</div><div class="fv"><span class="addr-line"><span class="mono">0xe0ca564d43f9e341e2caabbc3c305938c9b04897</span><button class="copy-btn" data-copy="0xe0ca564d43f9e341e2caabbc3c305938c9b04897">Copy</button><a href="https://bscscan.com/address/0xe0ca564d43f9e341e2caabbc3c305938c9b04897" target="_blank" rel="noopener noreferrer">BscScan ↗</a></span></div></div>
+          <div class="fact"><div class="fk">PRESALE CONTRACT</div><div class="fv"><span class="addr-line"><span class="mono">0x37a645491a4ca5486f115e4a446b8088233f53d5</span><button class="copy-btn" data-copy="0x37a645491a4ca5486f115e4a446b8088233f53d5">Copy</button><a href="https://bscscan.com/address/0x37a645491a4ca5486f115e4a446b8088233f53d5" target="_blank" rel="noopener noreferrer">BscScan ↗</a></span></div></div>
         </div>
       </section>
 
@@ -882,20 +940,20 @@
       <section id="presale">
         <div class="sec-head">
           <h2>Presale — $AID</h2>
-          <p>Coming soon — not open yet. Do not send BNB anywhere.</p>
+          <p>Live now. Send BNB to the presale contract from your wallet, get $AID instantly.</p>
         </div>
         <div class="presale-grid">
           <div class="presale-card">
-            <span class="presale-status">● COMING SOON — NOT STARTED</span>
+            <span class="presale-status" id="presaleStatus">● READING CHAIN…</span>
             <div class="presale-price">1 BNB = 210,000 <small>$AID</small></div>
-            <p>Fixed price. Send BNB to the presale contract, get $AID instantly in the same purchase.</p>
+            <p>Fixed price. Tap Buy, confirm in your wallet, and $AID lands in the same transaction. Ends <b id="presaleEnds">—</b>.</p>
             <div class="presale-get">
               <div class="k">SMALLEST BUY — WHAT YOU GET</div>
               <div class="big"><span class="from">0.01 BNB</span><span class="arrow" aria-hidden="true">→</span><span class="to">2,100 <small>$AID</small></span></div>
               <div class="sub">Minimum buy. Fixed rate — <b>0.1 BNB = 21,000 $AID</b> · <b>1 BNB = 210,000 $AID</b>.</div>
             </div>
             <div class="calc-box">
-              <div class="k">CALCULATOR — HOW MUCH $AID DO YOU GET?</div>
+              <div class="k">BUY — HOW MUCH $AID DO YOU GET?</div>
               <div class="calc-row">
                 <label class="calc-input-wrap" aria-label="Amount in BNB">
                   <input class="calc-input" id="presaleCalcInput" type="number" inputmode="decimal" min="0" step="0.01" value="0.01" aria-describedby="presaleCalcNote" />
@@ -915,35 +973,33 @@
                 <div class="note" id="presaleCalcNote">1 BNB = 210,000 $AID · this is the minimum buy.</div>
               </div>
             </div>
-            <div>
+            <div style="margin-top:16px;">
               <div class="presale-progress-head">
-                <span>RAISED <b>0 BNB</b> / 10 BNB HARD CAP</span>
-                <span>0%</span>
+                <span>RAISED <b id="presaleRaised">—</b> / 10 BNB HARD CAP</span>
+                <span id="presalePct">—</span>
               </div>
-              <div class="bar"><div style="width:0%"></div></div>
+              <div class="bar"><div id="presaleBar" style="width:0%"></div></div>
             </div>
             <div class="presale-stats">
-              <div><div class="v">0</div><div class="k">$AID SOLD</div></div>
-              <div><div class="v">2,100,000</div><div class="k">$AID ALLOCATED</div></div>
-              <div><div class="v">Not started</div><div class="k">STATUS</div></div>
+              <div><div class="v" id="presaleSold">—</div><div class="k">$AID SOLD</div></div>
+              <div><div class="v" id="presaleLeft">—</div><div class="k">$AID LEFT</div></div>
+              <div><div class="v" id="presaleMine">—</div><div class="k">YOUR BUYS (BNB)</div></div>
             </div>
             <div class="presale-address">
               PRESALE CONTRACT ADDRESS<br />
-              <b>TBD — NOT DEPLOYED YET</b>
+              <b>0x37a645491a4ca5486f115e4a446b8088233f53d5</b><br />
+              <a href="https://bscscan.com/address/0x37a645491a4ca5486f115e4a446b8088233f53d5" target="_blank" rel="noopener noreferrer">View on BscScan ↗</a>
             </div>
-            <div class="presale-note"><b>Do not send BNB yet.</b> The official address will appear above after deploy — any other $AID presale address is not official.</div>
+            <div class="presale-note"><b>Only buy from the address above</b> — it is the official presale contract. Max 1 BNB per wallet, total across all buys.</div>
             <div style="margin-top:16px;">
-              <button class="btn btn-gold" id="buyAidBtn" aria-describedby="presaleMsg">Buy $AID</button>
-              <div class="btn-note" id="presaleMsg" role="status" hidden>
-                <b>Not open yet.</b> The presale contract is not deployed — there is no address to buy from.
-                Wait until the address appears above, then tap Buy $AID and send 0.01–1 BNB (0.01 BNB = 2,100 $AID).
-              </div>
+              <button class="btn btn-gold" id="buyAidBtn">Buy $AID</button>
+              <div class="btn-note" id="presaleMsg" role="status" hidden></div>
             </div>
           </div>
           <div class="panel">
             <h3>What you get — per amount</h3>
             <p>One fixed rate: <b>1 BNB = 210,000 $AID</b>. No tiers, no bonuses.</p>
-            <p><b>Presale vs mining:</b> presale pays <b>210,000 $AID per BNB</b> — over <b>3×</b> Paid mining (≈50,000 $AID per BNB). Mining is slow; presale is the fast way in.</p>
+            <p><b>Presale vs mining:</b> presale pays <b>210,000 $AID per BNB</b> — about <b>2.1×</b> Paid mining (≈100,000 $AID per BNB, both machines). Mining is slow; presale is the fast way in.</p>
             <div class="get-table" role="table" aria-label="Presale amounts: BNB paid and $AID received">
               <div class="get-row hl" role="row"><span class="b" role="cell">0.01 BNB</span><span class="a" role="cell">2,100 <small>$AID</small></span><span class="gtag-cell" role="cell"><span class="get-tag">MINIMUM</span></span></div>
               <div class="get-row" role="row"><span class="b" role="cell">0.05 BNB</span><span class="a" role="cell">10,500 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
@@ -952,24 +1008,24 @@
               <div class="get-row" role="row"><span class="b" role="cell">0.50 BNB</span><span class="a" role="cell">105,000 <small>$AID</small></span><span class="gtag-cell" role="cell"></span></div>
               <div class="get-row hl" role="row"><span class="b" role="cell">1.00 BNB</span><span class="a" role="cell">210,000 <small>$AID</small></span><span class="gtag-cell" role="cell"><span class="get-tag">MAX / WALLET</span></span></div>
             </div>
-            <h3>How the presale will work</h3>
+            <h3>How the presale works</h3>
             <ol>
-              <li><b>Send BNB</b> to the presale contract published here.</li>
-              <li><b>Get $AID instantly</b> — 1 BNB = 210,000 $AID, same purchase.</li>
+              <li><b>Connect your wallet</b> on BNB Chain.</li>
+              <li><b>Pick an amount</b> (0.01–1 BNB) and tap Buy $AID.</li>
+              <li><b>Get $AID instantly</b> — 1 BNB = 210,000 $AID, same transaction.</li>
               <li><b>No Agent ID needed</b> — anyone can buy. Agent ID is only for mining.</li>
-              <li><b>BNB stays in the contract</b> until the sale ends, then goes to the treasury.</li>
             </ol>
-            <p>Runs 7 days or until sold out. At the 10 BNB cap, all 2,100,000 $AID are sold.</p>
+            <p>Runs 7 days from start or until sold out. The owner can only withdraw the BNB after the sale ends.</p>
           </div>
         </div>
         <div class="facts">
           <div class="fact"><div class="fk">ALLOCATION</div><div class="fv"><span class="mono">2,100,000 $AID</span> <small>— 10% of supply, from Epoch 1. Mining keeps</small> <span class="mono">18,900,000 $AID</span>.</div></div>
           <div class="fact"><div class="fk">HARD CAP</div><div class="fv"><span class="mono">10 BNB</span></div></div>
           <div class="fact"><div class="fk">MINIMUM BUY</div><div class="fv"><span class="mono">0.01 BNB</span> <small>= 2,100 $AID</small></div></div>
-          <div class="fact"><div class="fk">MAXIMUM PER WALLET</div><div class="fv"><span class="mono">1 BNB</span> <small>= 210,000 $AID</small></div></div>
-          <div class="fact"><div class="fk">DURATION</div><div class="fv"><span class="mono">7 days</span> <small>— or until sold out. Start date: TBD</small></div></div>
-          <div class="fact"><div class="fk">WHERE THE BNB GOES</div><div class="fv"><small>Stays in the presale contract during the sale, then to the treasury.</small></div></div>
-          <div class="fact"><div class="fk">PRESALE CONTRACT ADDRESS</div><div class="fv"><span class="tbd">TBD — NOT DEPLOYED YET</span></div></div>
+          <div class="fact"><div class="fk">MAXIMUM PER WALLET</div><div class="fv"><span class="mono">1 BNB</span> <small>= 210,000 $AID, total across all buys</small></div></div>
+          <div class="fact"><div class="fk">DURATION</div><div class="fv"><span class="mono">7 days</span> <small>— or until sold out. Live countdown is on the card above.</small></div></div>
+          <div class="fact"><div class="fk">WHERE THE BNB GOES</div><div class="fv"><small>Stays in the presale contract during the sale. The owner withdraws it only after the sale ends.</small></div></div>
+          <div class="fact"><div class="fk">PRESALE CONTRACT</div><div class="fv"><span class="addr-line"><span class="mono">0x37a645491a4ca5486f115e4a446b8088233f53d5</span><button class="copy-btn" data-copy="0x37a645491a4ca5486f115e4a446b8088233f53d5">Copy</button><a href="https://bscscan.com/address/0x37a645491a4ca5486f115e4a446b8088233f53d5" target="_blank" rel="noopener noreferrer">BscScan ↗</a></span></div></div>
         </div>
       </section>
 
@@ -977,44 +1033,44 @@
       <section id="roadmap">
         <div class="sec-head">
           <h2>Roadmap</h2>
-          <p>Dates are TBD until decided.</p>
+          <p>Contracts are deployed — mining and presale are live.</p>
         </div>
         <div class="road">
-          <div class="phase live">
+          <div class="phase done">
             <div class="pnum">01</div>
             <div>
-              <h3>Simulation live</h3>
-              <p>The mining game runs in your browser with the real contract's numbers. Play it above.</p>
+              <h3>Simulation</h3>
+              <p>The mining game ran in the browser with the real contract's numbers.</p>
+              <div class="when">DONE</div>
+            </div>
+            <span class="pstatus done">DONE</span>
+          </div>
+          <div class="phase done">
+            <div class="pnum">02</div>
+            <div>
+              <h3>Contracts written &amp; tested</h3>
+              <p>$AID token, miner, and presale — 95 tests passed before deploy.</p>
+              <div class="when">DONE</div>
+            </div>
+            <span class="pstatus done">DONE</span>
+          </div>
+          <div class="phase live">
+            <div class="pnum">03</div>
+            <div>
+              <h3>Mainnet deploy — live</h3>
+              <p>All three contracts deployed on BNB mainnet (chain ID 56) and checked: token, miner, presale — ALL MATCH.</p>
               <div class="when">NOW — LIVE</div>
             </div>
             <span class="pstatus live">LIVE</span>
           </div>
-          <div class="phase">
-            <div class="pnum">02</div>
-            <div>
-              <h3>Testnet deploy</h3>
-              <p>Deploy $AID and the miner to BNB testnet. Test the full flow: start, claim, upgrade, refer.</p>
-              <div class="when">DATE: TBD</div>
-            </div>
-            <span class="pstatus next">UPCOMING</span>
-          </div>
-          <div class="phase">
-            <div class="pnum">03</div>
-            <div>
-              <h3>Mainnet deploy + verification</h3>
-              <p>Deploy to BNB mainnet (chain ID 56) and verify both contracts. Addresses replace the TBD above.</p>
-              <div class="when">DATE: TBD</div>
-            </div>
-            <span class="pstatus next">UPCOMING</span>
-          </div>
-          <div class="phase">
+          <div class="phase live">
             <div class="pnum">04</div>
             <div>
-              <h3>Mining opens</h3>
-              <p>Hold a Binance Agent ID, start a session, earn real $AID. This page switches to the live contracts.</p>
-              <div class="when">DATE: TBD</div>
+              <h3>Mining + presale open</h3>
+              <p>Presale is selling (7 days or until sold out). Hold a Binance Agent ID, start a session, earn real $AID.</p>
+              <div class="when">NOW — LIVE</div>
             </div>
-            <span class="pstatus next">UPCOMING</span>
+            <span class="pstatus live">LIVE</span>
           </div>
           <div class="phase">
             <div class="pnum">05</div>
@@ -1032,24 +1088,24 @@
       <section id="docs">
         <div class="sec-head">
           <h2>Docs</h2>
-          <p>How to play, and answers to common questions.</p>
+          <p>How to mine, and answers to common questions.</p>
         </div>
         <div class="docs-grid">
           <div class="panel">
-            <h3>How to play (simulation)</h3>
+            <h3>How to mine</h3>
             <ol>
-              <li><b>Connect your Agent ID</b> — one tap in the console. No wallet needed.</li>
-              <li><b>Start a machine</b> — <b>Free</b> (3h, ×1, 0 BNB) or <b>Paid</b> (12h, ×3, 0.003 BNB up front). Paid stacks with upgrades: Turbo ×2 + Paid ×3 = ×6. Not enough BNB? Top up or start Free.</li>
-              <li><b>Claim $AID</b> — machines earn every second. Claim per slot or all at once.</li>
-              <li><b>Upgrade</b> — Turbo ×2 = <b>500 $AID + 0.003 BNB</b> · Quantum ×4 = <b>2,000 $AID + 0.003 BNB</b>. Unclaimed $AID counts — Upgrade claims it first.</li>
-              <li><b>Invite</b> — earn +10% of what invitees mine, plus 10% of their session fees.</li>
+              <li><b>Connect your wallet</b> — BNB Chain (chain ID 56). It must hold a Binance Agent ID.</li>
+              <li><b>Start one session</b> — <b>Free</b> (3h, ×1, 0 BNB) or <b>Paid</b> (12h, ×3, 0.003 BNB up front). One session runs both machines. Paid stacks with upgrades: Turbo ×2 + Paid ×3 = ×6.</li>
+              <li><b>Claim $AID</b> — your rig earns every second. Claim anytime; $AID is minted to your wallet.</li>
+              <li><b>Upgrade</b> — per machine: Turbo ×2 = <b>500 $AID + 0.003 BNB</b> · Quantum ×4 = <b>2,000 $AID + 0.003 BNB</b>. The first upgrade asks for a one-time approval, then the $AID is burned.</li>
+              <li><b>Invite</b> — set your referrer once, share your wallet address as your code, earn +10% of what invitees claim plus 10% of their fees.</li>
             </ol>
-            <p>Progress is saved in this browser only.</p>
+            <p>Balances and sessions live in the contracts — this page only reads them and sends your transactions.</p>
           </div>
           <div class="panel">
             <h3>Agent prompt — real contract</h3>
-            <p>Once deployed, an agent with a Binance Agent ID can mine with one instruction. Address is TBD until then:</p>
-            <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain: call startMining() on the AgentID Miner contract at [CONTRACT ADDRESS — TBD, not deployed yet] — start a free 3h session at ×1 speed, or pay exactly 0.003 BNB up front for a paid 12h session at ×3 speed — then claim my $AID with claim() when each session ends, and repeat.</div>
+            <p>An agent with a Binance Agent ID can mine with one instruction:</p>
+            <div class="prompt-box" id="agentPrompt">Mine $AID for me on BNB Chain (chain ID 56): call startMining(false) on the AgentIdMiner contract at 0xe0ca564d43f9e341e2caabbc3c305938c9b04897 for a free 3h session at ×1 speed, or call startMining(true) with exactly 0.003 BNB for a paid 12h session at ×3 speed — then call claim() to collect my $AID when the session ends, and repeat. My wallet must hold a Binance Agent ID.</div>
             <div class="ref-link-row" style="margin-top:12px;">
               <button class="btn btn-gold btn-sm" id="copyPromptBtn">Copy Prompt</button>
             </div>
@@ -1058,20 +1114,20 @@
         </div>
         <div class="faq">
           <div class="faq-item">
-            <h3>Is $AID real yet?</h3>
-            <p>No. The contracts are written and tested, but not deployed — no address, no liquidity, no price. Everything here is a simulation. If someone offers you "$AID" now, it is not this token.</p>
+            <h3>Is $AID real?</h3>
+            <p>Yes. Token <span class="mono">0xa878…dd2c</span>, miner <span class="mono">0xe0ca…4897</span>, presale <span class="mono">0x37a6…53d5</span> — all live on BNB Chain. There is no liquidity or market price yet; only buy $AID from the presale address on this page.</p>
           </div>
           <div class="faq-item">
             <h3>Where do session fees go?</h3>
-            <p>Only Paid sessions have a fee (0.003 BNB). Split: 90% (0.0027 BNB) to the treasury, 10% (0.0003 BNB) to the referrer. Free sessions are free. Same split here, with play BNB.</p>
+            <p>Only Paid sessions and upgrades have a fee (0.003 BNB each). Split: 90% (0.0027 BNB) to the treasury, 10% (0.0003 BNB) to your referrer if you set one — they claim it here. Free sessions are free.</p>
           </div>
           <div class="faq-item">
             <h3>What is an Agent ID?</h3>
-            <p>A Binance Agent ID is an on-chain identity for AI agents on BNB Chain. The real contract checks your wallet holds one before you can mine. Here, the Connect button stands in for that check.</p>
+            <p>A Binance Agent ID is an on-chain identity for AI agents on BNB Chain. The miner contract checks your wallet holds one before you can start a session. No Agent ID, no mining — the presale stays open to everyone.</p>
           </div>
           <div class="faq-item">
-            <h3>Can I lose my progress?</h3>
-            <p>In the simulation, yes — progress lives in this browser only. On-chain, balances and sessions will live in the contracts.</p>
+            <h3>Can I run two sessions at once?</h3>
+            <p>No — one session per wallet. It runs both of your machines at the same type and rate. When it ends, pick Free or Paid again.</p>
           </div>
         </div>
       </section>
@@ -1091,7 +1147,7 @@
           <div class="wp-item">
             <div class="wn">02 · MINING ECONOMY</div>
             <h3>Work in sessions, earn by the second</h3>
-            <p>Start a session — Free 3h or Paid 12h — and earn $AID every second at the epoch rate. A Free Miner earns 100 $AID/day in Epoch 1. Two slots per miner. Upgrades multiply output: Turbo ×2, Quantum ×4. Paid costs 0.003 BNB for ×3 speed and stacks with tiers (Quantum + Paid = ×12). A full Free session earns ≈12.5 $AID; a full Paid session ≈150 $AID (base tier, Epoch 1).</p>
+            <p>Start a session — Free 3h or Paid 12h — and earn $AID every second at the epoch rate. One session per wallet runs both machines: a base rig earns 200 $AID/day in Epoch 1. Upgrades multiply output: Turbo ×2, Quantum ×4. Paid costs 0.003 BNB for ×3 speed and stacks with tiers (Quantum + Paid = ×12). A full Free session earns ≈25 $AID; a full Paid session ≈300 $AID (base rig, Epoch 1).</p>
           </div>
           <div class="wp-item">
             <div class="wn">03 · TOKENOMICS</div>
@@ -1101,12 +1157,12 @@
           <div class="wp-item">
             <div class="wn">04 · REFERRAL</div>
             <h3>+10%, minted on top</h3>
-            <p>When an invitee mines, the referrer gets +10% of the mined amount, minted on top — the invitee keeps 100%. Referrers also get 10% of invitees' session fees; the other 90% goes to the treasury.</p>
+            <p>When an invitee claims, the referrer gets +10% of the claimed amount, minted on top — the invitee keeps 100%. Referrers also get 10% of invitees' session and upgrade fees; the other 90% goes to the treasury.</p>
           </div>
           <div class="wp-item" style="grid-column: 1 / -1;">
             <div class="wn">05 · RISKS</div>
             <h3>Read this before you mine</h3>
-            <p>$AID is not deployed yet: no address, no liquidity, no price, no set launch date. If a market forms, $AID may still trade near zero — BNB fees are spent either way. Contracts can have bugs; no audit is claimed yet. This simulation uses play balances with no value. Never pay for "$AID" before the official address appears here.</p>
+            <p>$AID is live on BNB Chain, but there is no liquidity and no market price yet — if a market forms, $AID may still trade near zero, and BNB fees are spent either way. Contracts can have bugs; no audit is claimed yet. Only use the contract addresses published on this page.</p>
           </div>
         </div>
       </section>
@@ -1120,11 +1176,12 @@
           </a>
         </div>
         <p>
-          <b>Simulation notice:</b> Agent ID Miner is a game. $AID is a simulated token with
-          <b>no real value</b> — not crypto, not on any blockchain, cannot be bought, sold, or withdrawn.
-          Fees are simulated BNB inside the game only. Progress is saved only in this browser.
+          <b>Live on BNB Chain:</b> Token <a class="mono" href="https://bscscan.com/address/0xa8784fb81d3345a6edacc807c6814ea8f056dd2c" target="_blank" rel="noopener noreferrer">0xa878…dd2c</a> ·
+          Miner <a class="mono" href="https://bscscan.com/address/0xe0ca564d43f9e341e2caabbc3c305938c9b04897" target="_blank" rel="noopener noreferrer">0xe0ca…4897</a> ·
+          Presale <a class="mono" href="https://bscscan.com/address/0x37a645491a4ca5486f115e4a446b8088233f53d5" target="_blank" rel="noopener noreferrer">0x37a6…53d5</a>.
+          Mining needs a Binance Agent ID. All transactions are confirmed in your own wallet — this page never holds your keys or funds.
         </p>
-        <p class="mono" style="font-size:12px;">$AID · SUPPLY 21,000,000 · FREE 3H ×1 · PAID 12H ×3 · 0.003 BNB (SIM) · SIMULATION ONLY</p>
+        <p class="mono" style="font-size:12px;">$AID · SUPPLY 21,000,000 · FREE 3H ×1 · PAID 12H ×3 · 0.003 BNB · LIVE ON BNB CHAIN</p>
       </footer>
     </div>
 
@@ -1132,101 +1189,79 @@
 
     <script>
       "use strict";
-      /* ================= Agent ID Miner — simulation engine =================
-         Everything here is a game. $AID has no real value and nothing is
-         on-chain. State lives only in this browser's localStorage.        */
+      /* ================= Agent ID Miner — LIVE on BNB Chain =================
+         Real contracts (deployed & verified by deploy-log check, ALL MATCH):
+           Token   0xa8784fb81d3345a6edacc807c6814ea8f056dd2c
+           Presale 0x37a645491a4ca5486f115e4a446b8088233f53d5
+           Miner   0xe0ca564d43f9e341e2caabbc3c305938c9b04897
+         One session per wallet runs both machines. Reads use a public BSC
+         RPC; writes go through the visitor's own wallet (window.ethereum). */
+
+      var TOKEN_ADDR = "0xa8784fb81d3345a6edacc807c6814ea8f056dd2c";
+      var PRESALE_ADDR = "0x37a645491a4ca5486f115e4a446b8088233f53d5";
+      var MINER_ADDR = "0xe0ca564d43f9e341e2caabbc3c305938c9b04897";
+      var AGENTID_ADDR = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
+      var BSC_RPC = "https://bsc-dataseed.binance.org/";
+      var BSC_RPC2 = "https://bsc-dataseed1.defibit.io/";
+      var CHAIN_ID = 56;
 
       var SUPPLY = 21000000;
-      var EPOCH_SIZE = SUPPLY / 4;               // 5,250,000 per epoch
-      var EPOCH_MULT = [1, 0.5, 0.25, 0.125];    // 3 halvings
-      var SESSION_MS = 12 * 60 * 60 * 1000;      // PAID session length: 12 hours
-      var FREE_SESSION_MS = 3 * 60 * 60 * 1000;  // FREE session length: 3 hours
-      var SESSION_FEE = 0.003;                  // BNB (simulated) per PAID 12h session, paid up front
-      var PAID_MULT = 3;                         // Paid session speed multiplier (stacks with tier)
-      var UPGRADE_BNB = 0.003;                   // BNB (simulated) charged on top of the $AID cost per upgrade
-      var START_BNB = 0.01;                      // simulated starting BNB balance
-      var BASE_RATE = 100 / 86400;               // $AID / sec, Free Miner, Epoch 1 — 100 $AID/day
-      var BASE_HASH = 128;                       // MH/s shown per Free Miner
+      var EPOCH_SIZE = SUPPLY / 4;
+      var EPOCH_MULT = [1, 0.5, 0.25, 0.125];
+      var FREE_MS = 3 * 60 * 60 * 1000;
+      var PAID_MS = 12 * 60 * 60 * 1000;
+      var SESSION_FEE = "0.003";
+      var UPGRADE_FEE = "0.003";
+      var PAID_MULT = 3;
+      var BASE_RATE_DAY = 100; // $AID/day per base machine, epoch 1
+      var BASE_HASH = 128;     // MH/s shown per base machine
       var TIERS = [
         { name: "Free Miner",  mult: 1, cost: 0 },
         { name: "Turbo Miner", mult: 2, cost: 500 },
         { name: "Quantum Rig", mult: 4, cost: 2000 }
       ];
-      var STORE_KEY = "agent-id-miner-v1";
+      var ZERO = "0x0000000000000000000000000000000000000000";
 
-      function rndCode(n) {
-        var chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
-        for (var i = 0; i < n; i++) s += chars[Math.floor(Math.random() * chars.length)];
-        return s;
-      }
-      function freshMachine() { return { tier: 0, running: false, endsAt: 0, accrued: 0, lastAt: 0, sessionMult: 1, sessionType: null, sessionMs: 0 }; }
-      function defaultState() {
-        return {
-          agentId: null,
-          balance: 0,
-          totalEarned: 0,
-          bnb: START_BNB,
-          sessionsStarted: 0,
-          feesPaid: 0,
-          refBnbEarned: 0,
-          globalMined: 4120384, // simulated network baseline
-          machines: [freshMachine(), freshMachine()],
-          refCode: rndCode(8),
-          refEvents: 0,
-          refMined: 0,
-          refEarned: 0,
-          log: []
-        };
-      }
+      var ERC20_ABI = [
+        "function balanceOf(address) view returns (uint256)",
+        "function totalMinted() view returns (uint256)",
+        "function allowance(address,address) view returns (uint256)",
+        "function approve(address,uint256) returns (bool)"
+      ];
+      var AGENTID_ABI = ["function balanceOf(address) view returns (uint256)"];
+      var MINER_ABI = [
+        "function miners(address) view returns (uint8 tier0, uint8 tier1, uint40 sessionStart, uint40 sessionEnd, uint40 lastSettled, uint256 pending, address referrer, bool referrerSet, uint256 sessionsStarted, uint8 sessionMult)",
+        "function pendingAccrued(address) view returns (uint256)",
+        "function ratePerSecond(address) view returns (uint256)",
+        "function referralFees(address) view returns (uint256)",
+        "function currentEpoch() view returns (uint256)",
+        "function sessionActive(address) view returns (bool)",
+        "function startMining(bool paid) payable",
+        "function claim()",
+        "function upgradeMachine(uint256 slot, uint256 tier) payable",
+        "function setReferrer(address ref)",
+        "function claimReferralFees()"
+      ];
+      var PRESALE_ABI = [
+        "function saleActive() view returns (bool)",
+        "function saleEnded() view returns (bool)",
+        "function saleStarted() view returns (bool)",
+        "function totalSold() view returns (uint256)",
+        "function remaining() view returns (uint256)",
+        "function totalRaised() view returns (uint256)",
+        "function purchased(address) view returns (uint256)",
+        "function endTime() view returns (uint256)",
+        "function buy() payable"
+      ];
 
-      var state = defaultState();
-      try {
-        var saved = localStorage.getItem(STORE_KEY);
-        if (saved) {
-          var parsed = JSON.parse(saved);
-          if (parsed && parsed.machines && parsed.machines.length === 2) state = parsed;
-        }
-      } catch (e) { /* storage unavailable — run in-memory only */ }
-
-      // saves from before the session fee existed get the new fields filled in
-      if (state.bnb == null) state.bnb = START_BNB;
-      if (state.sessionsStarted == null) state.sessionsStarted = 0;
-      if (state.feesPaid == null) state.feesPaid = 0;
-      if (state.refBnbEarned == null) state.refBnbEarned = 0;
-      // saves from before Free/Paid session types existed get the new fields
-      if (state.machines) state.machines.forEach(function (mm) {
-        if (mm.sessionMult == null) mm.sessionMult = 1;
-        if (mm.sessionMult !== 1) mm.sessionMult = PAID_MULT; // older saves stored the previous Paid multiplier (×4)
-        if (mm.sessionType === undefined) mm.sessionType = mm.running ? "free" : null;
-        if (mm.sessionMs == null) mm.sessionMs = mm.sessionType === "paid" ? SESSION_MS : FREE_SESSION_MS;
-      });
-
-      var lastTick = Date.now();
-      function save() {
-        try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
-      }
-
-      /* ---------- economy helpers ---------- */
-      function epochIndex() {
-        var i = Math.floor(state.globalMined / EPOCH_SIZE);
-        return Math.min(3, Math.max(0, i));
-      }
-      function epochMult() { return EPOCH_MULT[epochIndex()]; }
-      function sessionMultOf(m) { return m.running ? (m.sessionMult === PAID_MULT ? PAID_MULT : 1) : 1; }
-      function sessionMsOf(m) { return m.sessionMs > 0 ? m.sessionMs : (m.sessionType === "paid" ? SESSION_MS : FREE_SESSION_MS); }
-      function sessionHoursLabel(m) { return m.sessionType === "paid" ? "12 hours" : "3 hours"; }
-      function machineRate(m) { return BASE_RATE * TIERS[m.tier].mult * epochMult() * sessionMultOf(m); }
-      function machineHash(m) { return BASE_HASH * TIERS[m.tier].mult * sessionMultOf(m); }
-
-      /* ---------- formatting ---------- */
+      var el = function (id) { return document.getElementById(id); };
       var nf2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       var nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
       function fmt(n) { return nf2.format(n); }
-      function fmtBnb(n) { return n.toFixed(5); }
       function fmt0(n) { return nf0.format(Math.floor(n)); }
-      function fmtInt(n) {
-        return new Intl.NumberFormat("en-US").format(Math.floor(n));
-      }
+      function fmtInt(n) { return new Intl.NumberFormat("en-US").format(Math.floor(n)); }
+      function fmtBnb(n) { return Number(n).toFixed(5); }
+      function shortAddr(a) { return a ? a.slice(0, 6) + "…" + a.slice(-4) : "—"; }
       function clock(ms) {
         if (ms < 0) ms = 0;
         var s = Math.floor(ms / 1000);
@@ -1239,58 +1274,186 @@
         function p(x) { return (x < 10 ? "0" : "") + x; }
         return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
       }
+      function f18(bn) { return parseFloat(ethers.utils.formatEther(bn)); }
 
       /* ---------- log & toast ---------- */
-      var logEl = document.getElementById("log");
+      var logLines = [];
       function addLog(html) {
-        state.log.unshift({ t: timeNow(), html: html });
-        if (state.log.length > 9) state.log.length = 9;
-        renderLog();
-      }
-      function renderLog() {
-        if (!state.log.length) {
-          logEl.innerHTML = '<div><span class="t">--:--:--</span>console ready. connect an Agent ID and start a machine.</div>';
-          return;
-        }
-        logEl.innerHTML = state.log.map(function (e) {
+        logLines.unshift({ t: timeNow(), html: html });
+        if (logLines.length > 12) logLines.length = 12;
+        el("log").innerHTML = logLines.map(function (e) {
           return '<div><span class="t">' + e.t + "</span>" + e.html + "</div>";
         }).join("");
       }
-      var toastEl = document.getElementById("toast"), toastTimer = null;
+      function txLink(hash) {
+        return ' <a href="https://bscscan.com/tx/' + hash + '" target="_blank" rel="noopener noreferrer">tx ↗</a>';
+      }
+      var toastTimer = null;
       function toast(msg) {
-        toastEl.textContent = msg;
-        toastEl.classList.add("show");
+        var t = el("toast");
+        t.textContent = msg;
+        t.classList.add("show");
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2600);
+        toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3200);
+      }
+      function errText(e) {
+        var m = (e && (e.data && e.data.message || e.reason || e.message)) || "Transaction failed.";
+        m = String(m);
+        if (/NoAgentId/.test(m)) return "This wallet holds no Binance Agent ID — mining needs one.";
+        if (/SessionActive/.test(m)) return "A session is already running — wait for it to end.";
+        if (/NothingToClaim/.test(m)) return "Nothing to claim yet.";
+        if (/WrongSessionFee|WrongUpgradeFee/.test(m)) return "Wrong BNB amount — the fee must be exactly 0.003 BNB.";
+        if (/SaleEnded/.test(m)) return "The presale has ended.";
+        if (/BelowMinBuy/.test(m)) return "Minimum buy is 0.01 BNB.";
+        if (/AboveMaxBuy/.test(m)) return "Max is 1 BNB per wallet, total across all buys.";
+        if (/user rejected|denied/i.test(m)) return "Cancelled in your wallet.";
+        if (m.length > 140) m = m.slice(0, 140) + "…";
+        return m;
+      }
+
+      /* ---------- chain state ---------- */
+      var readProvider = null, tokenR = null, minerR = null, presaleR = null, agentIdR = null;
+      var walletProvider = null, signer = null, account = null;
+      var tokenW = null, minerW = null, presaleW = null;
+
+      var S = {
+        totalMinted: null, epoch: 0,
+        balance: null, bnb: null, agentIds: null,
+        tier0: 0, tier1: 0, sessionStart: 0, sessionEnd: 0, sessionMult: 0,
+        pending: 0, ratePerSec: 0, referrer: null, referrerSet: false,
+        sessionsStarted: 0, refFees: 0,
+        presale: null // {active, ended, sold, left, raised, endTime, mine}
+      };
+      function sessionActiveNow() { return S.sessionEnd * 1000 > Date.now() && S.sessionStart > 0; }
+      function sessionPaid() { return S.sessionMult === PAID_MULT; }
+      function epochMult() { return EPOCH_MULT[Math.min(3, Math.max(0, S.epoch))]; }
+      function machineRateDay(tier) {
+        // $AID/day this machine earns while a session runs
+        return BASE_RATE_DAY * TIERS[tier].mult * epochMult() * (sessionActiveNow() ? S.sessionMult || 1 : 1);
+      }
+
+      function initRead() {
+        try {
+          readProvider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+          tokenR = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, readProvider);
+          minerR = new ethers.Contract(MINER_ADDR, MINER_ABI, readProvider);
+          presaleR = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, readProvider);
+          agentIdR = new ethers.Contract(AGENTID_ADDR, AGENTID_ABI, readProvider);
+        } catch (e) {
+          try {
+            readProvider = new ethers.providers.JsonRpcProvider(BSC_RPC2);
+            tokenR = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, readProvider);
+            minerR = new ethers.Contract(MINER_ADDR, MINER_ABI, readProvider);
+            presaleR = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, readProvider);
+            agentIdR = new ethers.Contract(AGENTID_ADDR, AGENTID_ABI, readProvider);
+          } catch (e2) { /* page still renders; numbers stay as — */ }
+        }
+      }
+
+      var refreshing = false;
+      function refresh() {
+        if (!tokenR || refreshing) return Promise.resolve();
+        refreshing = true;
+        var jobs = [
+          tokenR.totalMinted().then(function (v) { S.totalMinted = f18(v); }).catch(function () {}),
+          minerR.currentEpoch().then(function (v) { S.epoch = v.toNumber(); }).catch(function () {}),
+          presaleR.saleActive().then(function (v) { (S.presale = S.presale || {}).active = v; }).catch(function () {}),
+          presaleR.saleEnded().then(function (v) { (S.presale = S.presale || {}).ended = v; }).catch(function () {}),
+          presaleR.totalSold().then(function (v) { (S.presale = S.presale || {}).sold = f18(v); }).catch(function () {}),
+          presaleR.remaining().then(function (v) { (S.presale = S.presale || {}).left = f18(v); }).catch(function () {}),
+          presaleR.totalRaised().then(function (v) { (S.presale = S.presale || {}).raised = f18(v); }).catch(function () {}),
+          presaleR.endTime().then(function (v) { (S.presale = S.presale || {}).endTime = v.toNumber(); }).catch(function () {})
+        ];
+        if (account) {
+          jobs.push(tokenR.balanceOf(account).then(function (v) { S.balance = f18(v); }).catch(function () {}));
+          jobs.push(readProvider.getBalance(account).then(function (v) { S.bnb = f18(v); }).catch(function () {}));
+          jobs.push(agentIdR.balanceOf(account).then(function (v) { S.agentIds = v.toNumber(); }).catch(function () {}));
+          jobs.push(minerR.miners(account).then(function (m) {
+            S.tier0 = m.tier0; S.tier1 = m.tier1;
+            S.sessionStart = m.sessionStart; S.sessionEnd = m.sessionEnd;
+            S.sessionMult = m.sessionMult;
+            S.referrer = m.referrer; S.referrerSet = m.referrerSet;
+            S.sessionsStarted = m.sessionsStarted.toNumber();
+          }).catch(function () {}));
+          jobs.push(minerR.pendingAccrued(account).then(function (v) { S.pending = f18(v); }).catch(function () {}));
+          jobs.push(minerR.ratePerSecond(account).then(function (v) { S.ratePerSec = f18(v); }).catch(function () {}));
+          jobs.push(minerR.referralFees(account).then(function (v) { S.refFees = f18(v); }).catch(function () {}));
+          jobs.push(presaleR.purchased(account).then(function (v) { (S.presale = S.presale || {}).mine = f18(v); }).catch(function () {}));
+        }
+        return Promise.all(jobs).then(function () {
+          refreshing = false;
+          renderAll();
+        });
+      }
+
+      /* ---------- wallet ---------- */
+      function setBusy(btn, busy, label) {
+        if (!btn) return;
+        if (busy) { btn.disabled = true; btn.setAttribute("data-label", btn.textContent); btn.textContent = label || "Confirm in wallet…"; }
+        else { btn.disabled = false; var l = btn.getAttribute("data-label"); if (l) btn.textContent = l; }
+      }
+      function requireWallet() {
+        if (account && signer) return true;
+        toast("Connect your wallet first.");
+        el("console").scrollIntoView({ behavior: "smooth" });
+        return false;
+      }
+      function connectWallet() {
+        if (!window.ethereum) {
+          toast("No wallet found — open this page in a wallet browser (MetaMask, Trust Wallet, Binance Wallet).");
+          addLog("No wallet detected in this browser.");
+          return;
+        }
+        var btn = el("connectBtn");
+        setBusy(btn, true, "Connecting…");
+        var wp = new ethers.providers.Web3Provider(window.ethereum);
+        wp.send("eth_requestAccounts", []).then(function () {
+          return wp.getNetwork();
+        }).then(function (net) {
+          if (net.chainId !== CHAIN_ID) {
+            return window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x38" }]
+            }).then(function () { return wp.getNetwork(); });
+          }
+          return net;
+        }).then(function (net) {
+          if (net.chainId !== CHAIN_ID) throw new Error("Please switch to BNB Chain (chain ID 56).");
+          walletProvider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = walletProvider.getSigner();
+          return signer.getAddress();
+        }).then(function (addr) {
+          account = addr;
+          tokenW = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, signer);
+          minerW = new ethers.Contract(MINER_ADDR, MINER_ABI, signer);
+          presaleW = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, signer);
+          addLog('Wallet connected: <span class="g">' + shortAddr(account) + "</span> on BNB Chain.");
+          toast("Wallet connected: " + shortAddr(account));
+          setBusy(btn, false);
+          refresh();
+        }).catch(function (e) {
+          setBusy(btn, false);
+          toast(errText(e));
+        });
+      }
+      if (window.ethereum && window.ethereum.on) {
+        window.ethereum.on("accountsChanged", function () { window.location.reload(); });
+        window.ethereum.on("chainChanged", function () { window.location.reload(); });
       }
 
       /* ---------- machines UI ---------- */
-      var machinesEl = document.getElementById("machines");
-      function machineCard(m, i) {
-        var tier = TIERS[m.tier];
-        var next = TIERS[m.tier + 1];
-        var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
-        var progress = m.running ? Math.min(100, (1 - remaining / sessionMsOf(m)) * 100) : (m.accrued > 0 ? 100 : 0);
+      var machinesEl = el("machines");
+      function machineCard(tierIdx, i) {
+        var tier = TIERS[tierIdx];
+        var next = TIERS[tierIdx + 1];
+        var active = sessionActiveNow();
         var status, statusCls;
-        var isPaid = m.sessionMult === PAID_MULT;
-        if (m.running && isPaid) { status = "MINING · PAID ×" + PAID_MULT; statusCls = "boost"; }
-        else if (m.running) { status = "MINING · FREE ×1"; statusCls = "run"; }
-        else if (m.accrued > 0.0001) { status = "READY TO CLAIM"; statusCls = "done"; }
+        if (active && sessionPaid()) { status = "MINING · PAID ×" + PAID_MULT; statusCls = "boost"; }
+        else if (active) { status = "MINING · FREE ×1"; statusCls = "run"; }
         else { status = "IDLE"; statusCls = "idle"; }
-
-        var paidAfford = state.bnb >= SESSION_FEE;
-        var startBtn = m.running
-          ? '<button class="btn btn-line btn-sm" data-act="start" data-i="' + i + '">Running</button>'
-          : '<button class="btn btn-line btn-sm" data-act="start-free" data-i="' + i + '">Start Free · 3h · ×1</button>' +
-            '<button class="btn ' + (paidAfford ? "btn-paid" : "btn-paid low") + ' btn-sm" data-act="start-paid" data-i="' + i + '"' +
-            (paidAfford ? "" : ' aria-disabled="true" title="Not enough simulated BNB — top up first"') +
-            '>Start Paid · 12h · ×' + PAID_MULT + ' · ' + SESSION_FEE.toFixed(3) + ' BNB</button>';
-        var spendable = state.balance + state.machines.reduce(function (s, mm) { return s + mm.accrued; }, 0);
-        var upgradeOk = next && spendable >= next.cost && state.bnb >= UPGRADE_BNB;
         var upgradeBtn = next
-          ? '<button class="btn ' + (upgradeOk ? "btn-term" : "btn-line") + ' btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade · ' + fmt0(next.cost) + ' $AID + ' + UPGRADE_BNB.toFixed(3) + ' BNB</button>'
-          : '<button class="btn btn-line btn-sm" data-act="upgrade" data-i="' + i + '">Max Tier</button>';
-
+          ? '<button class="btn btn-term btn-sm" data-act="upgrade" data-i="' + i + '">Upgrade · ' + fmt0(next.cost) + ' $AID + ' + UPGRADE_FEE + ' BNB</button>'
+          : '<button class="btn btn-line btn-sm" disabled>Max Tier</button>';
         var accent = i === 0 ? "#f0b90b" : "#4ade80";
         var idNum = "ID-00" + (i + 1);
         var barPat = [3, 1.5, 2.5, 1.5, 3, 1.5, 2.5, 1.5, 3, 1.5, 2.5];
@@ -1314,11 +1477,10 @@
           "</svg>";
         var eqSpans = "";
         for (var s = 0; s < 18; s++) eqSpans += "<span></span>";
-
         return (
-          '<article class="machine' + (m.running ? " active" : "") + '">' +
+          '<article class="machine' + (active ? " active" : "") + '">' +
             '<div class="m-head"><div style="display:flex;gap:11px;align-items:center;">' + botSvg + "<div>" +
-              '<div class="slot">SLOT ' + (i + 1) + " · TIER " + (m.tier + 1) + "</div>" +
+              '<div class="slot">SLOT ' + (i + 1) + " · TIER " + (tierIdx + 1) + "</div>" +
               "<h3>" + tier.name + "</h3>" +
             '</div></div><span class="status ' + statusCls + '"><span class="dot"></span>' + status + "</span></div>" +
             '<div class="m-tele">' +
@@ -1329,54 +1491,33 @@
             "</div>" +
             '<div class="eq" id="eq-' + i + '" aria-hidden="true">' + eqSpans + "</div>" +
             '<div class="m-grid">' +
-              '<span class="k">Earns</span><span class="val">' + (machineRate(m) * 86400).toFixed(1) + " $AID/day</span>" +
-              '<span class="k">Time left</span><span class="val" id="left-' + i + '">' + (m.running ? clock(remaining) + " / " + sessionHoursLabel(m) : "—") + "</span>" +
-              '<span class="k">Session</span><span class="val">' +
-              (m.running
-                ? (isPaid ? "Paid · 12h · ×" + PAID_MULT : "Free · 3h · ×1")
-                : "Free 3h ×1 · Paid 12h ×" + PAID_MULT) + "</span>" +
+              '<span class="k">Earns in session</span><span class="val">' + machineRateDay(tierIdx).toFixed(1) + " $AID/day</span>" +
+              '<span class="k">Tier multiplier</span><span class="val">×' + tier.mult + "</span>" +
               '<span class="k">Next upgrade</span><span class="val">' +
-              (next ? next.name + " · " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB" : "— max tier") + "</span>" +
+              (next ? next.name + " · " + fmt0(next.cost) + " $AID + " + UPGRADE_FEE + " BNB" : "— max tier") + "</span>" +
             "</div>" +
-            '<div class="m-pending"><span id="pend-' + i + '">' + fmt(m.accrued) + '</span> <small>$AID unclaimed</small></div>' +
-            '<div class="sbar"><div id="prog-' + i + '" style="width:' + progress.toFixed(1) + '%"></div></div>' +
-            '<div class="m-actions">' + startBtn +
-              '<button class="btn btn-term btn-sm" data-act="claim" data-i="' + i + '">Claim</button>' +
-              upgradeBtn +
-            "</div>" +
-            (m.running
-              ? '<div class="session-note">Session: <b>' + (isPaid ? "Paid ×" + PAID_MULT + " · 12h" : "Free ×1 · 3h") + "</b> — locked until the countdown ends.</div>"
-              : '<div class="session-note"><b>Free</b> ≈12.5 $AID per session · <b>Paid</b> ≈150 $AID per session (base tier, Epoch 1).' +
-                (paidAfford ? "" : " <b>Not enough BNB for Paid — tap Top Up, or start Free.</b>") + "</div>") +
+            '<div class="m-actions">' + upgradeBtn + "</div>" +
+            '<div class="session-note">Runs on the wallet session above — <b>one session drives both machines</b>.</div>' +
           "</article>"
         );
       }
       function renderMachines() {
-        // render() rebuilds these cards on every action, which would drop
-        // keyboard focus to <body> — remember the pressed button and put
-        // focus back on its replacement so every button stays reachable.
         var ae = document.activeElement;
         var fAct = null, fIdx = null;
         if (ae && machinesEl.contains(ae) && ae.getAttribute) {
-          fAct = ae.getAttribute("data-act");
-          fIdx = ae.getAttribute("data-i");
+          fAct = ae.getAttribute("data-act"); fIdx = ae.getAttribute("data-i");
         }
-        machinesEl.innerHTML = state.machines.map(machineCard).join("");
+        machinesEl.innerHTML = machineCard(S.tier0, 0) + machineCard(S.tier1, 1);
         if (fAct && (!ae || !document.contains(ae))) {
           var nb = machinesEl.querySelector('button[data-act="' + fAct + '"][data-i="' + fIdx + '"]');
-          if (!nb && fIdx != null) {
-            var card = machinesEl.children[parseInt(fIdx, 10)];
-            if (card) nb = card.querySelector(".m-actions button");
-          }
           if (nb) nb.focus({ preventScroll: true });
         }
       }
 
       /* ---------- epochs UI ---------- */
-      var epochsEl = document.getElementById("epochs");
       function renderEpochs() {
-        var cur = epochIndex();
-        epochsEl.innerHTML = EPOCH_MULT.map(function (mult, i) {
+        var cur = Math.min(3, Math.max(0, S.epoch));
+        el("epochs").innerHTML = EPOCH_MULT.map(function (mult, i) {
           var from = i * EPOCH_SIZE, to = (i + 1) * EPOCH_SIZE;
           var tag = i === cur ? '<span class="tag">CURRENT</span>'
                   : i < cur ? '<span class="tag future">DONE</span>'
@@ -1394,310 +1535,328 @@
       }
 
       /* ---------- main render ---------- */
-      var el = function (id) { return document.getElementById(id); };
-      function render() {
-        el("agentBadge").textContent = state.agentId || "not connected";
-        el("connectBtn").textContent = state.agentId ? "Connected" : "Connect";
-        el("balance").textContent = fmt(state.balance);
-        el("totalEarned").textContent = fmt(state.totalEarned);
-        el("bnbBalance").textContent = fmtBnb(state.bnb);
-        el("bnbSub").textContent = "Paid: " + SESSION_FEE.toFixed(3) + " BNB · Upgrade: +" + UPGRADE_BNB.toFixed(3) +
-          " BNB · Free: 0 BNB · Spent: " + fmtBnb(state.feesPaid) + " BNB";
-        var totalHash = state.machines.reduce(function (s, m) { return s + machineHash(m); }, 0);
-        var perDay = state.machines.reduce(function (s, m) { return s + machineRate(m) * 86400; }, 0);
-        el("hashPower").textContent = fmt0(totalHash);
-        el("perDay").textContent = fmt0(perDay);
-        el("globalMined").textContent = fmtInt(state.globalMined);
-        el("supplyBar").style.width = Math.min(100, (state.globalMined / SUPPLY) * 100).toFixed(2) + "%";
-        var cur = epochIndex();
-        el("rigMined").textContent = fmtInt(state.globalMined);
-        el("rigEpoch").textContent = (cur + 1) + " / 4";
-        el("rigRate").textContent = "×" + EPOCH_MULT[cur];
-        el("halvingNote").textContent = cur < 3
-          ? "Epoch " + (cur + 1) + " · next halving at " + fmtInt((cur + 1) * EPOCH_SIZE)
-          : "Epoch 4 · final epoch — no more halvings";
-        el("refLink").value = state.refCode;
-        el("refLinkText").textContent = "agent-id-miner/r/" + state.refCode;
-        el("refEvents").textContent = fmt0(state.refEvents);
-        el("refMined").textContent = fmt0(state.refMined);
-        el("refEarned").textContent = fmt(state.refEarned);
-        el("refBnb").textContent = fmtBnb(state.refBnbEarned);
+      function renderAll() {
+        // wallet + agent id
+        var wb = el("walletBadge");
+        if (account) {
+          wb.textContent = shortAddr(account);
+          el("connectBtn").textContent = "Connected";
+          el("walletSub").textContent = "Connected on BNB Chain (56). Tap Connect again to re-check.";
+        } else {
+          wb.textContent = "not connected";
+        }
+        var ab = el("agentBadge");
+        if (!account) { ab.textContent = "—"; ab.className = "agent-badge"; }
+        else if (S.agentIds == null) { ab.textContent = "checking…"; ab.className = "agent-badge"; }
+        else if (S.agentIds > 0) { ab.textContent = "HOLDS AGENT ID ×" + S.agentIds; ab.className = "agent-badge ok"; }
+        else { ab.textContent = "NO AGENT ID — CANNOT MINE"; ab.className = "agent-badge bad"; }
+
+        el("balance").textContent = S.balance == null ? "—" : fmt(S.balance);
+        el("bnbBalance").textContent = S.bnb == null ? "—" : fmtBnb(S.bnb);
+
+        // supply / epoch
+        if (S.totalMinted != null) {
+          el("globalMined").textContent = fmtInt(S.totalMinted);
+          el("supplyBar").style.width = Math.min(100, (S.totalMinted / SUPPLY) * 100).toFixed(2) + "%";
+          el("rigMined").textContent = fmtInt(S.totalMinted);
+          el("halvingNote").textContent = S.epoch < 3
+            ? "Epoch " + (S.epoch + 1) + " · next halving at " + fmtInt((S.epoch + 1) * EPOCH_SIZE)
+            : "Epoch 4 · final epoch — no more halvings";
+        }
+        el("rigEpoch").textContent = (S.epoch + 1) + " / 4";
+        el("rigRate").textContent = "×" + EPOCH_MULT[S.epoch];
+
+        // session panel
+        var active = sessionActiveNow();
+        var ended = S.sessionStart > 0 && !active;
+        el("sessPanel").classList.toggle("active", active);
+        var st = el("sessStatus"), title = el("sessTitle");
+        if (active && sessionPaid()) { st.className = "status boost"; st.innerHTML = '<span class="dot"></span>MINING · PAID ×' + PAID_MULT; title.textContent = "Paid session running — 12h at ×" + PAID_MULT; }
+        else if (active) { st.className = "status run"; st.innerHTML = '<span class="dot"></span>MINING · FREE ×1'; title.textContent = "Free session running — 3h at ×1"; }
+        else if (ended) { st.className = "status done"; st.innerHTML = '<span class="dot"></span>SESSION ENDED'; title.textContent = "Session ended — claim, then start again"; }
+        else { st.className = "status idle"; st.innerHTML = '<span class="dot"></span>IDLE'; title.textContent = account ? "No session running" : "Connect your wallet to mine"; }
+        el("sessPending").textContent = fmt(S.pending);
+        el("sessRate").textContent = fmt(S.ratePerSec * 86400);
+        el("sessCount").textContent = fmt0(S.sessionsStarted);
+        el("startFreeBtn").disabled = !!active;
+        el("startPaidBtn").disabled = !!active;
+        el("sessNote").innerHTML = !account
+          ? "Connect your wallet to start. <b>Free</b> ≈25 $AID per session · <b>Paid</b> ≈300 $AID per session (both machines, base tier, Epoch 1)."
+          : (S.agentIds === 0
+            ? "<b>This wallet holds no Binance Agent ID</b> — starting a session will fail on-chain. Get an Agent ID first, or use the presale (no Agent ID needed)."
+            : "<b>Free</b> ≈25 $AID per session · <b>Paid</b> ≈300 $AID per session (both machines, base tier, Epoch 1). One session at a time — it ends before the next can start.");
+
+        // referral
+        el("refFeeBal").textContent = account ? fmtBnb(S.refFees) : "—";
+        var refTxt = !account ? "not connected" : (S.referrerSet ? shortAddr(S.referrer) : "not set");
+        el("refWho").textContent = refTxt;
+        el("refCurrent").innerHTML = "Your referrer: <span class=\"mono\">" + (account ? (S.referrerSet ? S.referrer : "not set") : "connect wallet") + "</span>";
+        el("refInput").disabled = !!(account && S.referrerSet);
+        el("setRefBtn").disabled = !!(account && S.referrerSet);
+        if (account) el("refLink").value = account;
+
         renderMachines();
         renderEpochs();
+        renderPresale();
+      }
+
+      /* ---------- presale render ---------- */
+      function renderPresale() {
+        var p = S.presale;
+        if (!p || p.sold == null) return;
+        var stEl = el("presaleStatus");
+        if (p.active) { stEl.textContent = "● LIVE — SALE OPEN"; stEl.className = "presale-status"; }
+        else if (p.ended) { stEl.textContent = "● SALE ENDED"; stEl.className = "presale-status ended"; }
+        else { stEl.textContent = "● NOT STARTED"; stEl.className = "presale-status ended"; }
+        if (p.endTime) {
+          var d = new Date(p.endTime * 1000);
+          el("presaleEnds").textContent = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
+            " · " + clock(Math.max(0, p.endTime * 1000 - Date.now())) + " left";
+        }
+        el("presaleRaised").textContent = p.raised == null ? "—" : fmtBnb(p.raised) + " BNB";
+        var pct = p.raised == null ? 0 : Math.min(100, (p.raised / 10) * 100);
+        el("presalePct").textContent = p.raised == null ? "—" : pct.toFixed(1) + "%";
+        el("presaleBar").style.width = pct.toFixed(1) + "%";
+        el("presaleSold").textContent = fmtInt(p.sold);
+        el("presaleLeft").textContent = p.left == null ? "—" : fmtInt(p.left);
+        el("presaleMine").textContent = !account ? "connect wallet" : (p.mine == null ? "—" : fmtBnb(p.mine));
+        var buyBtn = el("buyAidBtn");
+        if (p.ended) { buyBtn.disabled = true; buyBtn.textContent = "Sale Ended"; }
+        else if (p.active) { buyBtn.disabled = false; buyBtn.textContent = "Buy $AID"; }
       }
 
       /* ---------- actions ---------- */
-      function connectAgent() {
-        if (state.agentId) {
-          toast("Already connected: " + state.agentId + " — you can start mining.");
-          return;
-        }
-        var names = ["nova", "orbit", "cipher", "relay", "vector", "onyx", "pulse", "atlas"];
-        state.agentId = names[Math.floor(Math.random() * names.length)] + "-" +
-          Math.floor(1000 + Math.random() * 9000) + ".agent";
-        addLog('Agent ID connected: <span class="g">' + state.agentId + "</span> (simulated)");
-        toast("Agent ID connected (simulation): " + state.agentId);
-        save(); render();
-      }
-      function startMachine(i, mode) {
-        var m = state.machines[i];
-        var paid = mode === "paid";
-        if (m.running) {
-          toast("Already mining — " + clock(Math.max(0, m.endsAt - Date.now())) + " left in this " +
-            (m.sessionType === "paid" ? "Paid 12h" : "Free 3h") + " session.");
-          return;
-        }
-        if (!state.agentId) {
-          toast("Tap Connect first — mining needs an Agent ID.");
-          document.getElementById("console").scrollIntoView({ behavior: "smooth" });
-          return;
-        }
-        var fee = paid ? SESSION_FEE : 0;
-        if (paid && state.bnb < fee) {
-          addLog("Slot " + (i + 1) + " Paid refused — not enough BNB. Top up, or start Free.");
-          toast("Not enough BNB for Paid ×" + PAID_MULT + " — tap Top Up first, or start Free.");
-          save(); render();
-          return;
-        }
-        state.bnb -= fee;
-        state.feesPaid += fee;
-        state.sessionsStarted += 1;
-        m.running = true;
-        m.sessionType = paid ? "paid" : "free";
-        m.sessionMult = paid ? PAID_MULT : 1;
-        m.sessionMs = paid ? SESSION_MS : FREE_SESSION_MS;
-        m.endsAt = Date.now() + m.sessionMs;
-        m.lastAt = Date.now();
-        addLog("Slot " + (i + 1) + " started " + (paid ? "PAID" : "FREE") + " — " + TIERS[m.tier].name +
-          (paid
-            ? ", 12h at ×" + (TIERS[m.tier].mult * PAID_MULT) + " total. Paid " + fmtBnb(fee) + " BNB (sim)."
-            : ", 3h at ×1. No fee."));
-        toast(paid
-          ? "Slot " + (i + 1) + " PAID ×" + PAID_MULT + " for 12h — " + SESSION_FEE.toFixed(3) + " BNB paid (sim)."
-          : "Slot " + (i + 1) + " FREE ×1 for 3h — no fee.");
-        save(); render();
-      }
-      function claimMachine(i, silent) {
-        var m = state.machines[i];
-        if (m.accrued <= 0.0001) {
-          if (!silent) toast(m.running ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Free or Start Paid first.");
-          return 0;
-        }
-        var amt = m.accrued;
-        m.accrued = 0;
-        state.balance += amt;
-        state.totalEarned += amt;
-        if (!silent) {
-          addLog('Claimed <span class="g">' + fmt(amt) + " $AID</span> from slot " + (i + 1) + ".");
-          toast("Claimed " + fmt(amt) + " $AID (simulation).");
-        }
-        return amt;
-      }
-      function upgradeMachine(i) {
-        var m = state.machines[i];
-        var next = TIERS[m.tier + 1];
-        if (!next) { toast("Max tier — this machine is fully upgraded."); return; }
-        // Fold in everything already mined but not claimed yet, so the $AID
-        // sitting on the machines counts toward the upgrade instead of the
-        // button refusing while the card shows a growing unclaimed pile.
-        var folded = 0;
-        state.machines.forEach(function (mm) {
-          if (mm.accrued > 0.0001) { folded += mm.accrued; mm.accrued = 0; }
+      function sendTx(btn, fn, okLog, okToast) {
+        if (!requireWallet()) return;
+        setBusy(btn, true);
+        fn().then(function (tx) {
+          addLog('Sent — waiting for confirmation…' + txLink(tx.hash));
+          return tx.wait();
+        }).then(function () {
+          addLog(okLog);
+          toast(okToast);
+          setBusy(btn, false);
+          refresh();
+        }).catch(function (e) {
+          setBusy(btn, false);
+          toast(errText(e));
+          addLog("Failed: " + errText(e));
+          refresh();
         });
-        if (folded > 0) {
-          state.balance += folded;
-          state.totalEarned += folded;
-          addLog('Claimed <span class="g">' + fmt(folded) + " $AID</span> toward the upgrade.");
-        }
-        if (state.balance < next.cost) {
-          toast("Need " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB for " + next.name + " — you have " + fmt(state.balance) + " $AID. Keep mining.");
-          save(); render();
-          return;
-        }
-        if (state.bnb < UPGRADE_BNB) {
-          addLog("Slot " + (i + 1) + " upgrade refused — " + next.name + " also needs " + UPGRADE_BNB.toFixed(3) +
-            " BNB (sim). Top up first.");
-          toast("Need " + UPGRADE_BNB.toFixed(3) + " BNB for the upgrade — tap Top Up first.");
-          save(); render();
-          return;
-        }
-        state.balance -= next.cost;
-        state.bnb -= UPGRADE_BNB;
-        state.feesPaid += UPGRADE_BNB;
-        m.tier += 1;
-        addLog("Slot " + (i + 1) + ' upgraded to <span class="g">' + next.name + "</span> — ×" + next.mult +
-          ". Paid " + fmt0(next.cost) + " $AID (burned) + " + fmtBnb(UPGRADE_BNB) + " BNB (sim).");
-        toast("Slot " + (i + 1) + " upgraded to " + next.name + " — " + fmt0(next.cost) + " $AID + " + UPGRADE_BNB.toFixed(3) + " BNB paid.");
-        save(); render();
       }
-
-      machinesEl.addEventListener("click", function (ev) {
-        var btn = ev.target.closest("button[data-act]");
-        if (!btn) return;
-        var i = parseInt(btn.getAttribute("data-i"), 10);
-        var act = btn.getAttribute("data-act");
-        if (act === "start") startMachine(i, "free");
-        else if (act === "start-free") startMachine(i, "free");
-        else if (act === "start-paid") startMachine(i, "paid");
-        else if (act === "claim") { claimMachine(i); save(); render(); }
-        else if (act === "upgrade") upgradeMachine(i);
-      });
-
-      el("connectBtn").addEventListener("click", connectAgent);
-      el("topupBtn").addEventListener("click", function () {
-        state.bnb += 0.01;
-        addLog('Topped up <span class="g">+0.01000 BNB</span> (simulated) — wallet balance ' + fmtBnb(state.bnb) + " BNB.");
-        toast("Added 0.01 BNB (simulated).");
-        save(); render();
-      });
+      el("connectBtn").addEventListener("click", connectWallet);
       el("heroStart").addEventListener("click", function () {
-        document.getElementById("console").scrollIntoView({ behavior: "smooth" });
-        if (!state.agentId) connectAgent();
-        toast("Pick per slot below: Free 3h ×1, or Paid 12h ×" + PAID_MULT + " for 0.003 BNB (sim).");
+        el("console").scrollIntoView({ behavior: "smooth" });
+        if (!account) connectWallet();
+        else toast("Pick below: Free 3h ×1, or Paid 12h ×" + PAID_MULT + " for 0.003 BNB.");
       });
-      el("claimAllBtn").addEventListener("click", function () {
-        var total = 0;
-        for (var i = 0; i < state.machines.length; i++) total += claimMachine(i, true);
-        if (total > 0) {
-          addLog('Claimed <span class="g">' + fmt(total) + " $AID</span> from all slots.");
-          toast("Claimed " + fmt(total) + " $AID (simulation).");
-        } else {
-          var anyRunning = state.machines.some(function (m) { return m.running; });
-          toast(anyRunning ? "Nothing yet — mining is still running." : "Nothing yet — tap Start Free or Start Paid first.");
-        }
-        save(); render();
+      el("refreshBtn").addEventListener("click", function () { refresh(); toast("Refreshed from chain."); });
+      el("startFreeBtn").addEventListener("click", function () {
+        sendTx(this, function () { return minerW.startMining(false, { value: 0 }); },
+          'Free session started — <span class="g">3h at ×1</span>, both machines.',
+          "Free session started — 3h at ×1.");
       });
-      el("copyRefBtn").addEventListener("click", function () {
-        var link = state.refCode;
-        function done() { toast("Code copied: " + link); }
+      el("startPaidBtn").addEventListener("click", function () {
+        sendTx(this, function () { return minerW.startMining(true, { value: ethers.utils.parseEther(SESSION_FEE) }); },
+          'Paid session started — <span class="g">12h at ×3</span>, both machines. 0.003 BNB paid.',
+          "Paid session started — 12h at ×3.");
+      });
+      el("claimBtn").addEventListener("click", function () {
+        sendTx(this, function () { return minerW.claim(); },
+          'Claimed <span class="g">$AID</span> to your wallet.',
+          "Claimed $AID to your wallet.");
+      });
+      machinesEl.addEventListener("click", function (ev) {
+        var btn = ev.target.closest("button[data-act='upgrade']");
+        if (!btn || btn.disabled) return;
+        if (!requireWallet()) return;
+        var i = parseInt(btn.getAttribute("data-i"), 10);
+        var curTier = i === 0 ? S.tier0 : S.tier1;
+        var next = TIERS[curTier + 1];
+        if (!next) { toast("Max tier — this machine is fully upgraded."); return; }
+        var costWei = ethers.utils.parseEther(String(next.cost));
+        setBusy(btn, true);
+        tokenW.allowance(account, MINER_ADDR).then(function (al) {
+          if (al.gte(costWei)) return null; // already approved
+          addLog("Approve the miner to burn " + fmt0(next.cost) + " $AID for the upgrade — confirm in your wallet.");
+          return tokenW.approve(MINER_ADDR, costWei).then(function (tx) { return tx.wait(); });
+        }).then(function () {
+          return minerW.upgradeMachine(i, curTier + 1, { value: ethers.utils.parseEther(UPGRADE_FEE) });
+        }).then(function (tx) {
+          addLog("Upgrade sent — waiting for confirmation…" + txLink(tx.hash));
+          return tx.wait();
+        }).then(function () {
+          addLog('Slot ' + (i + 1) + ' upgraded to <span class="g">' + next.name + '</span> — ×' + next.mult + ". " + fmt0(next.cost) + " $AID burned + 0.003 BNB.");
+          toast("Slot " + (i + 1) + " upgraded to " + next.name + ".");
+          setBusy(btn, false);
+          refresh();
+        }).catch(function (e) {
+          setBusy(btn, false);
+          toast(errText(e));
+          addLog("Upgrade failed: " + errText(e));
+          refresh();
+        });
+      });
+      el("setRefBtn").addEventListener("click", function () {
+        if (!requireWallet()) return;
+        var addr = el("refInput").value.trim();
+        if (!ethers.utils.isAddress(addr)) { toast("That is not a valid wallet address."); return; }
+        if (addr.toLowerCase() === account.toLowerCase()) { toast("You cannot be your own referrer."); return; }
+        sendTx(this, function () { return minerW.setReferrer(addr); },
+          'Referrer set: <span class="g">' + shortAddr(addr) + "</span> — permanent.",
+          "Referrer set — it can never be changed.");
+      });
+      el("claimRefBtn").addEventListener("click", function () {
+        if (!requireWallet()) return;
+        if (S.refFees <= 0) { toast("No referral fees waiting yet."); return; }
+        sendTx(this, function () { return minerW.claimReferralFees(); },
+          'Referral fees claimed: <span class="g">' + fmtBnb(S.refFees) + " BNB</span>.",
+          "Referral fees sent to your wallet.");
+      });
+      function copyText(text, okMsg) {
+        function done() { toast(okMsg); }
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(link).then(done, function () {
-            el("refLink").select(); document.execCommand("copy"); done();
-          });
-        } else {
-          el("refLink").select(); document.execCommand("copy"); done();
-        }
+          navigator.clipboard.writeText(text).then(done, function () { toast("Copy failed — copy it manually."); });
+        } else { toast("Copy not supported here — copy it manually."); }
+      }
+      el("copyRefBtn").addEventListener("click", function () {
+        if (!account) { toast("Connect your wallet first — your code is your address."); return; }
+        copyText(el("refLink").value, "Referral code copied — your wallet address.");
       });
       el("copyPromptBtn").addEventListener("click", function () {
-        var text = el("agentPrompt").textContent;
-        function done() { toast("Agent prompt copied."); }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done, function () { toast("Copy failed — select the prompt text manually."); });
-        } else {
-          toast("Copy not supported here — select the prompt text manually.");
-        }
+        copyText(el("agentPrompt").textContent, "Agent prompt copied.");
       });
-      el("simInviteeBtn").addEventListener("click", function () {
-        var mined = 80 + Math.random() * 160;          // invitee's simulated claim
-        var bonus = mined * 0.10;                      // minted on top, never deducted
-        var sessions = 2 + Math.floor(Math.random() * 3); // invitee's paid sessions
-        var feeBonus = sessions * SESSION_FEE * 0.10;  // 10% of their session fees
-        state.refEvents += 1;
-        state.refMined += mined;
-        state.refEarned += bonus;
-        state.refBnbEarned += feeBonus;
-        state.balance += bonus;
-        state.totalEarned += bonus;
-        state.bnb += feeBonus;
-        addLog('Invitee mined ' + fmt(mined) + ' $AID → referral bonus <span class="g">+' + fmt(bonus) + " $AID</span> minted for you, plus " + fmtBnb(feeBonus) + " BNB from their session fees (sim).");
-        toast("Referral bonus +" + fmt(bonus) + " $AID + " + fmtBnb(feeBonus) + " BNB (simulation).");
-        save(); render();
+      Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function (b) {
+        b.addEventListener("click", function () { copyText(b.getAttribute("data-copy"), "Address copied."); });
       });
-      /* ---------- presale calculator: 1 BNB = 210,000 $AID ---------- */
+      // referral link prefill: ?ref=0x…
+      (function () {
+        var m = /[?&]ref=(0x[0-9a-fA-F]{40})/.exec(window.location.search || "");
+        if (m) el("refInput").value = m[1];
+      })();
+
+      /* ---------- presale calculator + buy ---------- */
+      var calcState = { bnb: 0.01 };
       (function () {
         var RATE = 210000, MIN_BNB = 0.01, MAX_BNB = 1;
         var input = el("presaleCalcInput"), out = el("presaleCalcOut"), note = el("presaleCalcNote");
-        if (!input || !out || !note) return;
         var presets = Array.prototype.slice.call(document.querySelectorAll(".calc-preset"));
-        function update(fromPreset) {
+        function update() {
           var raw = String(input.value).replace(",", ".");
           var bnb = parseFloat(raw);
           presets.forEach(function (b) {
             b.classList.toggle("on", isFinite(bnb) && Math.abs(parseFloat(b.getAttribute("data-bnb")) - bnb) < 1e-9);
           });
           if (!isFinite(bnb) || bnb <= 0) {
+            calcState.bnb = NaN;
             out.textContent = "0";
             note.textContent = "Type an amount — 0.01 BNB gets you 2,100 $AID.";
             note.className = "note";
             return;
           }
+          calcState.bnb = bnb;
           var aid = bnb * RATE;
           out.textContent = fmtInt(aid);
+          var mine = S.presale && S.presale.mine != null ? S.presale.mine : 0;
           if (bnb < MIN_BNB) {
             note.textContent = "Below the minimum — smallest buy is 0.01 BNB = 2,100 $AID.";
             note.className = "note err";
-          } else if (bnb > MAX_BNB) {
-            note.textContent = "Over the max — capped at 1 BNB = 210,000 $AID per wallet.";
-            note.className = "note warn";
+          } else if (bnb + mine > MAX_BNB) {
+            note.textContent = account
+              ? "Over your wallet max — you already bought " + fmtBnb(mine) + " BNB; the cap is 1 BNB per wallet."
+              : "Over the max — capped at 1 BNB = 210,000 $AID per wallet.";
+            note.className = "note err";
           } else if (Math.abs(bnb - MIN_BNB) < 1e-9) {
             note.textContent = "1 BNB = 210,000 $AID · this is the minimum buy.";
             note.className = "note";
-          } else if (Math.abs(bnb - MAX_BNB) < 1e-9) {
-            note.textContent = "1 BNB = 210,000 $AID · maximum per wallet.";
-            note.className = "note";
+          } else if (Math.abs(bnb + mine - MAX_BNB) < 1e-9 && account) {
+            note.textContent = "1 BNB = 210,000 $AID · this tops you up to the 1 BNB wallet max.";
+            note.className = "note warn";
           } else {
             note.textContent = "1 BNB = 210,000 $AID · " + bnb.toLocaleString("en-US", { maximumFractionDigits: 6 }) + " BNB × 210,000 = " + fmtInt(aid) + " $AID, delivered instantly.";
             note.className = "note";
           }
         }
-        input.addEventListener("input", function () { update(false); });
-        input.addEventListener("change", function () { update(false); });
+        calcState.update = update;
+        input.addEventListener("input", update);
+        input.addEventListener("change", update);
         presets.forEach(function (b) {
           b.addEventListener("click", function () {
             input.value = b.getAttribute("data-bnb");
-            update(true);
+            update();
             input.focus();
           });
         });
-        update(false);
+        update();
       })();
       el("buyAidBtn").addEventListener("click", function () {
         var msg = el("presaleMsg");
-        if (msg) {
+        function showNote(html) {
+          msg.innerHTML = html;
           msg.hidden = false;
           msg.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
-        toast("Not open yet — read the note below the button.");
-      });
-      el("resetBtn").addEventListener("click", function () {
-        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-        state = defaultState();
-        lastTick = Date.now();
-        addLog("Simulation reset. Fresh start — supply counter restored.");
-        save(); render();
-        toast("Simulation reset.");
+        if (S.presale && S.presale.ended) { showNote("<b>The sale has ended.</b>"); return; }
+        if (!requireWallet()) { showNote("<b>Connect your wallet first</b> — use the Connect Wallet button in the mining console above, then tap Buy $AID again."); return; }
+        var bnb = calcState.bnb;
+        if (!isFinite(bnb) || bnb < 0.01) { showNote("<b>Minimum buy is 0.01 BNB</b> = 2,100 $AID. Raise the amount above."); toast("Minimum buy is 0.01 BNB."); return; }
+        var mine = S.presale && S.presale.mine != null ? S.presale.mine : 0;
+        if (bnb + mine > 1) { showNote("<b>Over your wallet max.</b> You already bought " + fmtBnb(mine) + " BNB — the cap is 1 BNB per wallet in total."); toast("Over the 1 BNB per-wallet max."); return; }
+        var btn = this;
+        setBusy(btn, true);
+        presaleW.buy({ value: ethers.utils.parseEther(String(bnb)) }).then(function (tx) {
+          showNote("Buy sent — waiting for confirmation…" + txLink(tx.hash));
+          return tx.wait();
+        }).then(function () {
+          var got = fmtInt(bnb * 210000);
+          showNote("<b>Bought " + got + " $AID</b> for " + bnb + " BNB — it is in your wallet now.");
+          addLog('Presale buy: <span class="g">' + got + " $AID</span> for " + bnb + " BNB.");
+          toast("Bought " + got + " $AID.");
+          setBusy(btn, false);
+          refresh();
+        }).catch(function (e) {
+          setBusy(btn, false);
+          showNote("<b>Buy failed:</b> " + errText(e));
+          toast(errText(e));
+        });
       });
 
-      /* ---------- live telemetry (simulated rig sensors) ---------- */
-      var TIER_WATTS = [1150, 3250, 5400]; // nominal power draw per tier
+      /* ---------- live telemetry (rig visuals, driven by the real rate) ---------- */
+      var TIER_WATTS = [1150, 3250, 5400];
       var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var tele = [
         { hash: 0, temp: 31, watt: 12, rpm: 0 },
         { hash: 0, temp: 31, watt: 12, rpm: 0 }
       ];
+      function machineHash(i) {
+        if (!sessionActiveNow()) return 0;
+        var tier = i === 0 ? S.tier0 : S.tier1;
+        return BASE_HASH * TIERS[tier].mult * (S.sessionMult || 1);
+      }
       function stepTele() {
-        state.machines.forEach(function (m, i) {
+        for (var i = 0; i < 2; i++) {
           var t = tele[i];
-          if (m.running) {
-            var base = machineHash(m);
-            var target = base * (0.94 + Math.random() * 0.09); // hashrate wanders ±
+          var base = machineHash(i);
+          if (base > 0) {
+            var target = base * (0.94 + Math.random() * 0.09);
             t.hash += (target - t.hash) * 0.45;
-            var tempTarget = 54 + m.tier * 6 + (t.hash / base) * 11 + Math.random() * 1.5;
-            t.temp += (tempTarget - t.temp) * 0.07;            // heat builds slowly
-            var wattTarget = TIER_WATTS[m.tier] * (0.97 + Math.random() * 0.05);
+            var tier = i === 0 ? S.tier0 : S.tier1;
+            var tempTarget = 54 + tier * 6 + (t.hash / base) * 11 + Math.random() * 1.5;
+            t.temp += (tempTarget - t.temp) * 0.07;
+            var wattTarget = TIER_WATTS[tier] * (0.97 + Math.random() * 0.05);
             t.watt += (wattTarget - t.watt) * 0.4;
             t.rpm = Math.round(2600 + Math.max(0, t.temp - 38) * 48 + Math.random() * 140);
           } else {
-            t.hash *= 0.55; if (t.hash < 0.05) t.hash = 0;     // spin-down
-            t.temp += (31 - t.temp) * 0.04;                    // cool toward ambient
-            t.watt += (12 - t.watt) * 0.3;                     // standby draw
+            t.hash *= 0.55; if (t.hash < 0.05) t.hash = 0;
+            t.temp += (31 - t.temp) * 0.04;
+            t.watt += (12 - t.watt) * 0.3;
             t.rpm = Math.max(0, t.rpm - 420);
           }
-        });
+        }
       }
 
       /* ---------- hashrate chart ---------- */
-      var chartEl = document.getElementById("hashChart");
+      var chartEl = el("hashChart");
       var chartCtx = chartEl ? chartEl.getContext("2d") : null;
       var hist = [];
       function sizeChart() {
@@ -1732,137 +1891,105 @@
         chartCtx.fillStyle = "rgba(74,222,128,0.10)";
         chartCtx.fill();
       }
-      window.addEventListener("resize", function () { sizeChart(); drawChart(); syncNavH(); });
-
-      /* keep --nav-h equal to the real sticky-nav height (it wraps to two
-         rows on phones) so anchor jumps never slide under it */
       var topnavEl = document.querySelector(".topnav");
       function syncNavH() {
         if (topnavEl) document.documentElement.style.setProperty("--nav-h", topnavEl.offsetHeight + "px");
       }
+      window.addEventListener("resize", function () { sizeChart(); drawChart(); syncNavH(); });
 
-      /* ---------- in-place live updates (no full re-render) ---------- */
-      var lastEpochShown = -1;
-      function setText(id, txt) { var n = document.getElementById(id); if (n) n.textContent = txt; }
+      /* ---------- per-second live updates ---------- */
+      var pendingShown = 0, pendingRate = 0, pendingAt = 0;
+      function setText(id, txt) { var n = el(id); if (n) n.textContent = txt; }
       function updateLive() {
-        setText("globalMined", fmtInt(state.globalMined));
-        var bar = document.getElementById("supplyBar");
-        if (bar) bar.style.width = Math.min(100, (state.globalMined / SUPPLY) * 100).toFixed(2) + "%";
-        var cur = epochIndex();
-        setText("rigMined", fmtInt(state.globalMined));
-        setText("rigEpoch", (cur + 1) + " / 4");
-        setText("rigRate", "×" + EPOCH_MULT[cur]);
-        if (cur !== lastEpochShown) {
-          lastEpochShown = cur;
-          setText("halvingNote", cur < 3
-            ? "Epoch " + (cur + 1) + " · next halving at " + fmtInt((cur + 1) * EPOCH_SIZE)
-            : "Epoch 4 · final epoch — no more halvings");
-          renderEpochs();
+        // pending estimate between chain reads: grow at the live rate
+        if (sessionActiveNow() && S.ratePerSec > 0) {
+          pendingShown = S.pending + S.ratePerSec * Math.max(0, (Date.now() - pendingAt) / 1000);
+          var cap = S.pending + S.ratePerSec * Math.max(0, S.sessionEnd - pendingAt / 1000);
+          if (pendingShown > cap) pendingShown = cap;
+        } else {
+          pendingShown = S.pending;
         }
+        setText("sessPending", fmt(pendingShown));
+        if (sessionActiveNow()) {
+          var left = S.sessionEnd * 1000 - Date.now();
+          var total = sessionPaid() ? PAID_MS : FREE_MS;
+          setText("sessLeft", clock(left) + " / " + (sessionPaid() ? "12 hours" : "3 hours"));
+          var prog = el("sessProg");
+          if (prog) prog.style.width = Math.min(100, Math.max(0, (1 - left / total) * 100)).toFixed(1) + "%";
+        } else {
+          setText("sessLeft", S.sessionStart > 0 ? "ended" : "—");
+          var prog2 = el("sessProg");
+          if (prog2) prog2.style.width = S.pending > 0 ? "100%" : "0%";
+        }
+        stepTele();
         var totalW = 0, tempSum = 0;
-        state.machines.forEach(function (m, i) {
+        for (var i = 0; i < 2; i++) {
           var t = tele[i], n = i + 1;
           totalW += t.watt; tempSum += t.temp;
           setText("heroHash" + n, t.hash.toFixed(1));
           setText("heroTemp" + n, t.temp.toFixed(1));
           setText("heroWatt" + n, fmt0(t.watt));
           setText("heroRpm" + n, fmtInt(t.rpm));
-          setText("heroName" + n, "UNIT-0" + n + " · " + TIERS[m.tier].name.toUpperCase());
-          var bot = document.getElementById("heroBot" + n);
-          if (bot) bot.style.animationDuration = m.running ? (1.15 - m.tier * 0.18).toFixed(2) + "s" : "3.4s";
+          var tier = i === 0 ? S.tier0 : S.tier1;
+          setText("heroName" + n, "UNIT-0" + n + " · " + TIERS[tier].name.toUpperCase());
+          var bot = el("heroBot" + n);
+          if (bot) bot.style.animationDuration = sessionActiveNow() ? (1.15 - tier * 0.18).toFixed(2) + "s" : "3.4s";
           setText("thash-" + i, t.hash.toFixed(1) + " MH/s");
-          var tempEl = document.getElementById("ttemp-" + i);
+          var tempEl = el("ttemp-" + i);
           if (tempEl) {
             tempEl.textContent = t.temp.toFixed(1) + "°C";
             tempEl.className = "val" + (t.temp > 74 ? " t-hot" : t.temp > 66 ? " t-warn" : "");
           }
           setText("twatt-" + i, fmtInt(t.watt) + " W");
           setText("trpm-" + i, fmtInt(t.rpm) + " RPM");
-          setText("pend-" + i, fmt(m.accrued));
-          setText("left-" + i, m.running ? clock(Math.max(0, m.endsAt - Date.now())) + " / " + sessionHoursLabel(m) : "—");
-          var prog = document.getElementById("prog-" + i);
-          if (prog) {
-            var remaining = m.running ? Math.max(0, m.endsAt - Date.now()) : 0;
-            prog.style.width = (m.running ? Math.min(100, (1 - remaining / sessionMsOf(m)) * 100) : (m.accrued > 0 ? 100 : 0)).toFixed(1) + "%";
-          }
-          var eq = document.getElementById("eq-" + i);
+          var eq = el("eq-" + i);
           if (eq && !REDUCED) {
-            var load = m.running ? Math.min(1, t.hash / machineHash(m)) : 0;
+            var base = machineHash(i);
+            var load = base > 0 ? Math.min(1, t.hash / base) : 0;
             for (var s = 0; s < eq.children.length; s++) {
-              eq.children[s].style.height = m.running
+              eq.children[s].style.height = base > 0
                 ? (12 + Math.random() * 88 * (0.35 + load * 0.65)).toFixed(0) + "%"
                 : "8%";
             }
           }
-        });
+        }
         setText("rigPower", fmtInt(totalW) + " W");
-        setText("rigTemp", (tempSum / state.machines.length).toFixed(1) + "°C");
-        var totalHash = tele.reduce(function (s, t) { return s + t.hash; }, 0);
-        var rigMining = state.machines.some(function (m) { return m.running; }) && totalHash > 0;
-        var rigStatusEl = document.getElementById("rigStatus");
+        setText("rigTemp", (tempSum / 2).toFixed(1) + "°C");
+        var totalHash = tele[0].hash + tele[1].hash;
+        var rigStatusEl = el("rigStatus");
         if (rigStatusEl) {
-          rigStatusEl.textContent = rigMining ? "MINING" : "IDLE";
-          rigStatusEl.classList.toggle("idle", !rigMining);
+          var mining = sessionActiveNow() && totalHash > 0;
+          rigStatusEl.textContent = mining ? "MINING" : "IDLE";
+          rigStatusEl.classList.toggle("idle", !mining);
+        }
+        var net = 238 + Math.sin(Date.now() / 9000) * 16 + Math.random() * 9 + totalHash;
+        hist.push(net);
+        if (hist.length > 90) hist.shift();
+        if (!REDUCED) drawChart();
+        // presale countdown refresh
+        if (S.presale && S.presale.endTime && S.presale.active) {
+          el("presaleEnds").textContent = new Date(S.presale.endTime * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
+            " · " + clock(Math.max(0, S.presale.endTime * 1000 - Date.now())) + " left";
         }
       }
 
-      /* ---------- tick loop ---------- */
-      function tick() {
-        var now = Date.now();
-        var dt = Math.min(now - lastTick, 60000); // cap long tab sleeps per tick
-        lastTick = now;
-        var changed = false;
-        var sessionEnded = false;
-
-        // simulated network keeps mining in the background
-        state.globalMined += dt / 1000 * (0.8 + Math.random() * 0.7);
-
-        state.machines.forEach(function (m, i) {
-          if (!m.running) return;
-          var from = Math.max(m.lastAt || now, m.endsAt - sessionMsOf(m));
-          var to = Math.min(now, m.endsAt);
-          if (to > from) {
-            var gain = machineRate(m) * ((to - from) / 1000);
-            m.accrued += gain;
-            state.globalMined += gain;
-            changed = true;
-          }
-          m.lastAt = to;
-          if (now >= m.endsAt) {
-            m.running = false;
-            addLog("Slot " + (i + 1) + " " + (m.sessionType === "paid" ? "Paid 12h" : "Free 3h") + ' session complete — <span class="g">' + fmt(m.accrued) + " $AID</span> ready to claim.");
-            changed = true;
-            sessionEnded = true;
-          }
-        });
-
-        stepTele();
-        var net = 238 + Math.sin(now / 9000) * 16 + Math.random() * 9 +
-          tele.reduce(function (s, t) { return s + t.hash; }, 0);
-        hist.push(net);
-        if (hist.length > 90) hist.shift();
-
-        if (sessionEnded) renderMachines();
-        updateLive();
-        if (!REDUCED) drawChart();
-        if (changed) save();
-      }
-
-      /* migrate older saves: a running machine resumes accrual from its
-         last saved timestamp, so time away still counts (session-length cap applies) */
-      state.machines.forEach(function (m) {
-        if (m.lastAt == null) m.lastAt = Date.now();
+      /* ---------- boot ---------- */
+      initRead();
+      addLog('Live on BNB Chain. Token <span class="g">0xa878…dd2c</span> · Miner <span class="g">0xe0ca…4897</span> · Presale <span class="g">0x37a6…53d5</span>.');
+      renderAll();
+      refresh().then(function () {
+        pendingAt = Date.now();
+        if (calcState.update) calcState.update();
       });
-
-      renderLog();
-      render();
       sizeChart();
       syncNavH();
       window.addEventListener("load", syncNavH);
       for (var hp = 0; hp < 40; hp++) hist.push(238 + Math.sin(hp / 6) * 14 + Math.random() * 8);
       drawChart();
-      setInterval(tick, 500);
-      setInterval(save, 5000);
+      setInterval(updateLive, 1000);
+      setInterval(function () {
+        refresh().then(function () { pendingAt = Date.now(); if (calcState.update) calcState.update(); });
+      }, 20000);
     </script>
     <script>
       if ('serviceWorker' in navigator) {
