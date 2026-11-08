@@ -16,6 +16,14 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <script>
+      // Fallback CDNs for the wallet library — on a slow connection the first
+      // CDN can time out; without ethers nothing on the page can connect.
+      if (!window.ethers) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.min.js"><\/script>');
+    </script>
+    <script>
+      if (!window.ethers) document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.min.js"><\/script>');
+    </script>
     <style>
       :root {
         --bg: #eceee9;
@@ -1201,9 +1209,23 @@
       var PRESALE_ADDR = "0x37a645491a4ca5486f115e4a446b8088233f53d5";
       var MINER_ADDR = "0xe0ca564d43f9e341e2caabbc3c305938c9b04897";
       var AGENTID_ADDR = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
-      var BSC_RPC = "https://bsc-dataseed.binance.org/";
-      var BSC_RPC2 = "https://bsc-dataseed1.defibit.io/";
+      var RPCS = [
+        "https://bsc-dataseed.binance.org/",
+        "https://bsc-rpc.publicnode.com",
+        "https://bsc-dataseed1.defibit.io/",
+        "https://rpc.ankr.com/bsc"
+      ];
+      var rpcIdx = 0;
       var CHAIN_ID = 56;
+      var ETHERS_OK = typeof window.ethers !== "undefined";
+      function withTimeout(p, ms) {
+        return Promise.race([
+          p,
+          new Promise(function (resolve, reject) {
+            setTimeout(function () { reject(new Error("timeout")); }, ms);
+          })
+        ]);
+      }
 
       var SUPPLY = 21000000;
       var EPOCH_SIZE = SUPPLY / 4;
@@ -1333,55 +1355,60 @@
       }
 
       function initRead() {
+        if (!ETHERS_OK) return;
         try {
-          readProvider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+          readProvider = new ethers.providers.JsonRpcProvider(RPCS[rpcIdx]);
           tokenR = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, readProvider);
           minerR = new ethers.Contract(MINER_ADDR, MINER_ABI, readProvider);
           presaleR = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, readProvider);
           agentIdR = new ethers.Contract(AGENTID_ADDR, AGENTID_ABI, readProvider);
-        } catch (e) {
-          try {
-            readProvider = new ethers.providers.JsonRpcProvider(BSC_RPC2);
-            tokenR = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, readProvider);
-            minerR = new ethers.Contract(MINER_ADDR, MINER_ABI, readProvider);
-            presaleR = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, readProvider);
-            agentIdR = new ethers.Contract(AGENTID_ADDR, AGENTID_ABI, readProvider);
-          } catch (e2) { /* page still renders; numbers stay as — */ }
-        }
+        } catch (e) { /* page still renders; numbers stay as — */ }
       }
 
       var refreshing = false;
+      var retryTimer = null;
+      function call(p) { return withTimeout(p, 12000); }
       function refresh() {
         if (!tokenR || refreshing) return Promise.resolve();
         refreshing = true;
         var jobs = [
-          tokenR.totalMinted().then(function (v) { S.totalMinted = f18(v); }).catch(function () {}),
-          minerR.currentEpoch().then(function (v) { S.epoch = v.toNumber(); }).catch(function () {}),
-          presaleR.saleActive().then(function (v) { (S.presale = S.presale || {}).active = v; }).catch(function () {}),
-          presaleR.saleEnded().then(function (v) { (S.presale = S.presale || {}).ended = v; }).catch(function () {}),
-          presaleR.totalSold().then(function (v) { (S.presale = S.presale || {}).sold = f18(v); }).catch(function () {}),
-          presaleR.remaining().then(function (v) { (S.presale = S.presale || {}).left = f18(v); }).catch(function () {}),
-          presaleR.totalRaised().then(function (v) { (S.presale = S.presale || {}).raised = f18(v); }).catch(function () {}),
-          presaleR.endTime().then(function (v) { (S.presale = S.presale || {}).endTime = v.toNumber(); }).catch(function () {})
+          call(tokenR.totalMinted()).then(function (v) { S.totalMinted = f18(v); }).catch(function () {}),
+          call(minerR.currentEpoch()).then(function (v) { S.epoch = v.toNumber(); }).catch(function () {}),
+          call(presaleR.saleActive()).then(function (v) { (S.presale = S.presale || {}).active = v; }).catch(function () {}),
+          call(presaleR.saleEnded()).then(function (v) { (S.presale = S.presale || {}).ended = v; }).catch(function () {}),
+          call(presaleR.totalSold()).then(function (v) { (S.presale = S.presale || {}).sold = f18(v); }).catch(function () {}),
+          call(presaleR.remaining()).then(function (v) { (S.presale = S.presale || {}).left = f18(v); }).catch(function () {}),
+          call(presaleR.totalRaised()).then(function (v) { (S.presale = S.presale || {}).raised = f18(v); }).catch(function () {}),
+          call(presaleR.endTime()).then(function (v) { (S.presale = S.presale || {}).endTime = v.toNumber(); }).catch(function () {})
         ];
         if (account) {
-          jobs.push(tokenR.balanceOf(account).then(function (v) { S.balance = f18(v); }).catch(function () {}));
-          jobs.push(readProvider.getBalance(account).then(function (v) { S.bnb = f18(v); }).catch(function () {}));
-          jobs.push(agentIdR.balanceOf(account).then(function (v) { S.agentIds = v.toNumber(); }).catch(function () {}));
-          jobs.push(minerR.miners(account).then(function (m) {
+          jobs.push(call(tokenR.balanceOf(account)).then(function (v) { S.balance = f18(v); }).catch(function () {}));
+          jobs.push(call(readProvider.getBalance(account)).then(function (v) { S.bnb = f18(v); }).catch(function () {}));
+          jobs.push(call(agentIdR.balanceOf(account)).then(function (v) { S.agentIds = v.toNumber(); }).catch(function () {}));
+          jobs.push(call(minerR.miners(account)).then(function (m) {
             S.tier0 = m.tier0; S.tier1 = m.tier1;
             S.sessionStart = m.sessionStart; S.sessionEnd = m.sessionEnd;
             S.sessionMult = m.sessionMult;
             S.referrer = m.referrer; S.referrerSet = m.referrerSet;
             S.sessionsStarted = m.sessionsStarted.toNumber();
           }).catch(function () {}));
-          jobs.push(minerR.pendingAccrued(account).then(function (v) { S.pending = f18(v); }).catch(function () {}));
-          jobs.push(minerR.ratePerSecond(account).then(function (v) { S.ratePerSec = f18(v); }).catch(function () {}));
-          jobs.push(minerR.referralFees(account).then(function (v) { S.refFees = f18(v); }).catch(function () {}));
-          jobs.push(presaleR.purchased(account).then(function (v) { (S.presale = S.presale || {}).mine = f18(v); }).catch(function () {}));
+          jobs.push(call(minerR.pendingAccrued(account)).then(function (v) { S.pending = f18(v); }).catch(function () {}));
+          jobs.push(call(minerR.ratePerSecond(account)).then(function (v) { S.ratePerSec = f18(v); }).catch(function () {}));
+          jobs.push(call(minerR.referralFees(account)).then(function (v) { S.refFees = f18(v); }).catch(function () {}));
+          jobs.push(call(presaleR.purchased(account)).then(function (v) { (S.presale = S.presale || {}).mine = f18(v); }).catch(function () {}));
         }
         return Promise.all(jobs).then(function () {
           refreshing = false;
+          if (S.totalMinted == null) {
+            // This node never answered — rotate to the next public RPC and
+            // retry soon instead of sitting on "Reading chain…" forever.
+            rpcIdx = (rpcIdx + 1) % RPCS.length;
+            initRead();
+            el("halvingNote").textContent = "Chain is slow — retrying…";
+            if (!retryTimer) {
+              retryTimer = setTimeout(function () { retryTimer = null; refresh(); }, 6000);
+            }
+          }
           renderAll();
         });
       }
@@ -1404,9 +1431,34 @@
           addLog("No wallet detected in this browser.");
           return;
         }
+        if (typeof window.ethers === "undefined") {
+          toast("Wallet library didn't load — check your connection, then reload the page.");
+          addLog("Wallet library failed to load — reload the page to try again.");
+          return;
+        }
         var btn = el("connectBtn");
+        if (btn.disabled) return;
         setBusy(btn, true, "Connecting…");
-        var wp = new ethers.providers.Web3Provider(window.ethereum);
+        // Watchdog: if the wallet never answers (prompt left open, app
+        // backgrounded, slow network), free the button instead of leaving
+        // it stuck on "Connecting…" forever.
+        var finished = false;
+        var timer = setTimeout(function () {
+          if (finished) return;
+          finished = true;
+          setBusy(btn, false);
+          toast("Wallet took too long to answer. Open your wallet app, approve the request, then tap Connect again.");
+          addLog("Wallet connection timed out — nothing was connected.");
+        }, 30000);
+        function done() { finished = true; clearTimeout(timer); setBusy(btn, false); }
+        var wp;
+        try {
+          wp = new ethers.providers.Web3Provider(window.ethereum);
+        } catch (e) {
+          done();
+          toast("Wallet error — reload the page and try again.");
+          return;
+        }
         wp.send("eth_requestAccounts", []).then(function () {
           return wp.getNetwork();
         }).then(function (net) {
@@ -1429,10 +1481,11 @@
           presaleW = new ethers.Contract(PRESALE_ADDR, PRESALE_ABI, signer);
           addLog('Wallet connected: <span class="g">' + shortAddr(account) + "</span> on BNB Chain.");
           toast("Wallet connected: " + shortAddr(account));
-          setBusy(btn, false);
+          done();
           refresh();
         }).catch(function (e) {
-          setBusy(btn, false);
+          if (finished) return;
+          done();
           toast(errText(e));
         });
       }
@@ -1976,6 +2029,10 @@
       /* ---------- boot ---------- */
       initRead();
       addLog('Live on BNB Chain. Token <span class="g">0xa878…dd2c</span> · Miner <span class="g">0xe0ca…4897</span> · Presale <span class="g">0x37a6…53d5</span>.');
+      if (!ETHERS_OK) {
+        el("halvingNote").textContent = "Wallet library failed to load — check your connection and reload.";
+        addLog("Wallet library didn't load, so chain data can't be read. Reload the page to try again.");
+      }
       renderAll();
       refresh().then(function () {
         pendingAt = Date.now();
